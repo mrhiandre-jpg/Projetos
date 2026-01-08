@@ -4,11 +4,10 @@ import pandas as pd
 
 from tkinter import filedialog
 from tabulate import tabulate
+from tkinter import ttk
 
 def carregar_arquivo():
     root = tk.Tk()
-    root.title('Carregar Arquivo')
-    root.geometry('500x500')
     root.withdraw()
 
     print('Abrindo arquivo')
@@ -16,23 +15,64 @@ def carregar_arquivo():
         title='Carregar Arquivo',
         filetypes=(('Arquivo', '*.csv'),)
     )
-    if abrir_arquivo:
-
+    if not abrir_arquivo:
+        root.destroy()
+        return None, None
         print(f'Arquivo selecionado: {abrir_arquivo}')
-        try:
+    try:
 
-            df = pd.read_csv(abrir_arquivo)
-            return df
-        except Exception as e:
-            print(f'Erro ao carregar arquivo: {e}')
-            return None
-    else:
-        print('Nenhum arquivo selecionado')
+        df = pd.read_csv(abrir_arquivo)
+        return df, root
+    except Exception as e:
+        print(f'Erro ao carregar arquivo: {e}')
         return None
+
+def janela(root, df):
+    root.deiconify()
+    root.title('Janela')
+    root.geometry('500x500')
+
+    tree = ttk.Treeview(root, columns=list(df.columns), show='headings')
+
+    tree.tag_configure('aprovado_tag', background='#C6EFCE')  # Verde claro (Excel)
+    tree.tag_configure('reprovado_tag', background='#FFC7CE')  # Vermelho claro (Excel)
+    tree.tag_configure('recuperacao_tag', background='#FFEB9C')  # Amarelo claro (Excel)
+
+    try:
+        index_status = list(df.columns).index('status')
+    except ValueError:
+        print("Aviso: Coluna 'status' não encontrada. As cores não funcionarão.")
+        index_status = -1
+
+    for coluna in df.columns:
+        tree.heading(coluna, text=coluna)
+        tree.column(coluna, width=100)
+
+    for linha in df.to_numpy().tolist():
+
+        minha_tag = ()
+
+        # Se achamos a coluna status, verificamos o valor dela nessa linha
+        if index_status != -1:
+            valor_status = linha[index_status]
+
+            if valor_status == 'Aprovado':
+                minha_tag = ('aprovado_tag',)
+            elif valor_status == 'Reprovado':
+                minha_tag = ('reprovado_tag',)
+            elif valor_status == 'Recuperado':  # Ou 'Recuperação', dependendo do seu código
+                minha_tag = ('recuperacao_tag',)
+        tree.insert('', 'end', values=linha, tags=minha_tag)
+
+    scroll = ttk.Scrollbar(root, orient='vertical', command=tree.yview)
+    tree.configure(yscrollcommand=scroll.set)
+    scroll.pack(side='right', fill='y')
+    tree.pack(expand=True, fill='both')
+    root.mainloop()
 
 #chamar a função para pegar os dados
 
-notas = carregar_arquivo()
+notas, janela_root = carregar_arquivo()
 if notas is not None:
     print('\n---- processando arquivo ----')
     try:
@@ -55,6 +95,14 @@ if notas is not None:
         nota.loc[ regra_bonus, 'Notas_Finais'] += 1
         nota.loc[ regra_dezz    , 'Notas_Finais'] = 10
         """
+        notas = notas.round(1)
+
+        janela(janela_root, notas)
         print(tabulate(notas, headers='keys', tablefmt='psql', showindex=False, stralign='left', numalign='left'))
+
+    except AttributeError:
+        print("Erro: Verifique os nomes das colunas (lembre-se: sem espaços para usar ponto!)")
     except KeyError as e:
         print(f'Erro ao carregar arquivo: {e}')
+else:
+    print('Nenhum arquivo encontrado')
