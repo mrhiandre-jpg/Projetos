@@ -8,13 +8,13 @@ notas.describe()
 notas['Notas_Finais'] = notas['Nota_Original']
 notas['status'] = 'Reprovado'
 
-notas.loc[(notas['Nota_Original'] >= 8.0) & (notas['Nota_Original'] <= 9.0), 'Notas_Finais'] += 1
-notas.loc[(notas['Nota_Original'] >= 9.0) & (notas['Nota_Original'] < 10.0), 'Notas_Finais'] = 10
+notas.loc[(notas['Nota_Original'] >= 8.0) & (notas['Nota_Original'] < 9.0), 'Notas_Finais'] += 1
+notas.loc[(notas['Nota_Original'] >= 9.0),   'Notas_Finais'] = 10
 
 notas['Bonus'] = notas['Notas_Finais'] - notas['Nota_Original']
 
 notas.loc[notas['Nota_Original'] >= 7.0, 'status'] = 'aprovados'
-notas.loc[(notas['Nota_Original'] >= 5.0) & (notas['Nota_Original'] < 7.0), 'status'] = 'Recueração'
+notas.loc[(notas['Nota_Original'] >= 5.0) & (notas['Nota_Original'] < 7.0), 'status'] = 'Recuperação'
 
 
 #tabulete
