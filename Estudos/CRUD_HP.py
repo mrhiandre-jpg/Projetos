@@ -196,3 +196,34 @@ class Menu:
             print('5. Sair')
 
             op = self.ler_numero('Escolha uma opção: ')
+            if op == '1':
+                self.menu_professores()
+            elif op == '2':
+                self.menu_casas()
+            elif op == '3':
+                self.menu_anos()
+            elif op == '4':
+                self.menu_alunos
+            elif op == '5':
+                print('Nox')
+                break
+            else:
+                print('Opção invalida! Tente novamente!')
+
+        # -- Sub-MENUS----
+        def menu_professores(self):
+            print('\n --- Professores --- ')
+            print('1 - Contratar')
+            print('2 - Mudar Matéria')
+            print('3 - Demitir')
+            print('4 - Voltar')
+            op = self.ler_numero('Escolha umaa opção: ')
+            if op == '1':
+                nome = input('Nome: ')
+                materia = input('Materia: ')
+                self.ge_prof.contratar(nome, materia)
+            elif op == '2':
+                id_professor = input('Id professores: ')
+                nova_materia = input('Nova materia: ')
+                self.ge_prof.atualizar_materia(id_professor, nova_materia)
+
