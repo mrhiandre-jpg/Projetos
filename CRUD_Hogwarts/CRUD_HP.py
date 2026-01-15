@@ -330,4 +330,3 @@ if __name__ == '__main__':
 
     sistema_hogwarts.iniciar()
     conn.close()
-
