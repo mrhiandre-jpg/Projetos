@@ -1,62 +1,65 @@
 import sqlite3
 
-conn = sqlite3.connect('hogwarts.db')
-cursor = conn.cursor()
+def iniciar_banco():
+    conn = sqlite3.connect('hogwarts.db')
+    cursor = conn.cursor()
 
-sql_tabelas = [
-    """
-    CREATE TABLE IF NOT EXISTS professores (
-        id_professor INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome_professor TEXT NOT NULL,
-        materia_de_ensino TEXT 
-    );
-    """,
-    """
-    CREATE TABLE IF NOT EXISTS casas (
-    id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome_casa TEXT NOT NULL,
-    id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(id_professor)
-    );
-    """,
-    """
-    CREATE TABLE IF NOT EXISTS anos_escolares (
-        id_ano INTEGER PRIMARY KEY AUTOINCREMENT,
-        titulo TEXT NOT NULL,       -- Ex: 'Primeiro Ano', 'Quinto Ano'
-        ano_numero INTEGER NOT NULL,
-        tem_exame_final BOOLEAN,       -- Ex: TRUE para o 5º e 7º ano
-        pode_ir_hogsmeade BOOLEAN,     -- Ex: FALSE para 1º e 2º ano
-        material_obrigatorio TEXT      -- Ex: 'Livro Padrão de Feitiços Grau 1'
-    );
-    """,
-    """
-    CREATE TABLE IF NOT EXISTS alunos(
-        id_aluno INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome_aluno TEXT NOT NULL,
-        data_de_nascimento TEXT NOT NULL,
-        data_matricula TEXT DEFAULT CURRENT_DATE,
-        id_casa INTEGER NOT NULL,
-        id_ano_atual INTEGER,
-        aluno_status TEXT CHECK(aluno_status IN ('Ativo', 'Inativo')) DEFAULT 'Ativo',
-        FOREIGN KEY (id_casa) REFERENCES casas(id_casa),
-        FOREIGN KEY (id_ano_atual) REFERENCES anos_escolares(id_ano)
-    );
-    """,
-    """
-    CREATE TRIGGER IF NOT EXISTS bloqueia_troca_casa
-    BEFORE UPDATE ON alunos
-    FOR EACH ROW
-    WHEN OLD.id_casa <> NEW.id_casa  -- Se a Casa Velha for diferente da Nova
-    BEGIN
-        -- O comando RAISE(ABORT) cancela tudo e manda uma mensagem de erro
-        SELECT RAISE(ABORT, 'Erro: A decisão do Chapéu Seletor é final! Não é permitido mudar de casa.');
-    END;
-    """
-]
+    sql_tabelas = [
+        """
+        CREATE TABLE IF NOT EXISTS professores (
+            id_professor INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome_professor TEXT NOT NULL,
+            materia_de_ensino TEXT 
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS casas (
+        id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome_casa TEXT NOT NULL,
+        id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(id_professor)
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS anos_escolares (
+            id_ano INTEGER PRIMARY KEY AUTOINCREMENT,
+            titulo TEXT NOT NULL,       -- Ex: 'Primeiro Ano', 'Quinto Ano'
+            ano_numero INTEGER NOT NULL,
+            tem_exame_final BOOLEAN,       -- Ex: TRUE para o 5º e 7º ano
+            pode_ir_hogsmeade BOOLEAN,     -- Ex: FALSE para 1º e 2º ano
+            material_obrigatorio TEXT      -- Ex: 'Livro Padrão de Feitiços Grau 1'
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS alunos(
+            id_aluno INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome_aluno TEXT NOT NULL,
+            data_de_nascimento TEXT NOT NULL,
+            data_matricula TEXT DEFAULT CURRENT_DATE,
+            id_casa INTEGER NOT NULL,
+            id_ano_atual INTEGER,
+            aluno_status TEXT CHECK(aluno_status IN ('Ativo', 'Inativo')) DEFAULT 'Ativo',
+            FOREIGN KEY (id_casa) REFERENCES casas(id_casa),
+            FOREIGN KEY (id_ano_atual) REFERENCES anos_escolares(id_ano)
+        );
+        """,
+        """
+        CREATE TRIGGER IF NOT EXISTS bloqueia_troca_casa
+        BEFORE UPDATE ON alunos
+        FOR EACH ROW
+        WHEN OLD.id_casa <> NEW.id_casa  -- Se a Casa Velha for diferente da Nova
+        BEGIN
+            -- O comando RAISE(ABORT) cancela tudo e manda uma mensagem de erro
+            SELECT RAISE(ABORT, 'Erro: A decisão do Chapéu Seletor é final! Não é permitido mudar de casa.');
+        END;
+        """
+    ]
 
-for comando in sql_tabelas:
-    cursor.execute(comando)
-conn.commit() # Salva a estrutura
-print("--- Tabelas verificadas/criadas com sucesso ---")
+    for sql in sql_tabelas:
+        cursor.execute(sql)
+    conn.commit() # Salva a estrutura
+    print("--- Tabelas verificadas/criadas com sucesso ---")
+
+    return conn, cursor
 
 class Professor:
     def __init__(self, cursor_banco, conexao_banco):
@@ -326,7 +329,7 @@ class Menu:
                 print('Opção inválida! Tente novamente!')
 
 if __name__ == '__main__':
-    sistema_hogwarts = Menu(cursor, conn)
-
+    conn, curso = iniciar_banco()
+    sistema_hogwarts = Menu(curso, conn)
     sistema_hogwarts.iniciar()
     conn.close()
