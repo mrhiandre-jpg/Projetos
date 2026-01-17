@@ -1,1 +1,2 @@
-Esse git e apenas para eu testar os meus projetos antes q eu possa publicar
+# Meus Estudos
+Explorando tecnologias, um commit por vez. Aqui estão os projetos práticos que criei para fixar meus estudos, testar novas ferramentas e desafiar meus limites de programação.
