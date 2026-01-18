@@ -9,14 +9,15 @@ def iniciar_banco():
         CREATE TABLE IF NOT EXISTS professores (
             id_professor INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_professor TEXT NOT NULL,
+            data_nascimento TEXT NOT NULL,
             materia_de_ensino TEXT 
         );
         """,
         """
         CREATE TABLE IF NOT EXISTS casas (
-        id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome_casa TEXT NOT NULL,
-        id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(id_professor)
+            id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome_casa TEXT NOT NULL,
+            id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(id_professor)
         );
         """,
         """
@@ -66,28 +67,43 @@ class Professor:
         self.cursor = cursor_banco
         self.conn = conexao_banco
 
-    def contratar(self, nome, materia_de_ensino):
-        sql = 'INSERT INTO professores (nome_professor, materia_de_ensino) VALUES (?, ?)'
+    def contratar(self, nome, data_de_nascimento, idade_professor, materia_de_ensino):
+        sql = 'INSERT INTO professores (nome_professor, data_nascimento, idade_professor, materia_de_ensino) VALUES (?, ?)'
         try:
-            self.cursor.execute(sql, (nome, materia_de_ensino))
+            self.cursor.execute(sql, (nome, data_de_nascimento, idade_professor, materia_de_ensino))
             self.conn.commit()
             print(f'Professor {nome} contratado com sucesso!')
             return self.cursor.lastrowid
         except sqlite3.IntegrityError as e:
             print(f'Erro ao cadastrar {e}')
             return None
+    def busca(self, nome_busca):
+        sql = 'SELECT * FROM professores WHERE nome_professor = ?'
+        self.cursor.execute(sql, (nome_busca,))
+        resultado = self.cursor.fetchone()
 
-    def atualizar_materia(self, id_professor, nova_materia):
-        sql = 'UPDATE professores SET materia_de_ensino = ? WHERE id_professor = ?'
+        return resultado
+
+    def atualizar(self, id_prof, novo_nome, nova_data_nascimento, nova_materia):
+        sql = """
+            UPDATE professores 
+            SET nome_professor = ?,
+            data_nascimento = ?,
+            materia_de_ensino  = ? 
+            WHERE id_professor = ?
+        """
         try:
-            self.cursor.execute(sql, (nova_materia, id_professor))
+            novo = (novo_nome, nova_data_nascimento, nova_materia, id_prof)
+
+            self.cursor.execute(sql, novo)
             self.conn.commit()
             if self.cursor.rowcount > 0:
-                print(f'Maté    ria do Professor {id_professor} atualizada para {nova_materia} com sucesso!')
+                print(f'Atualização com sucesso!')
             else:
                 print('Professor não encontrado!')
         except sqlite3.IntegrityError as e:
             print(f'Erro ao atualizar: {e}')
+            return False
     def demitir_professor(self, nome_professor):
         sql = "DELETE FROM professores WHERE nome_professor = ?"
 

@@ -26,7 +26,8 @@ class View_Professor:
                                            command=self.aba_contratar)
         self.btn_contratar.pack(pady=20, padx=20)
 
-        self.btn_modi = ctk.CTkButton(self.menu_lateral, text='modificar')
+        self.btn_modi = ctk.CTkButton(self.menu_lateral, text='modificar',
+                                      command=self.aba_modicar)
         self.btn_modi.pack(pady=20, padx=20)
 
         self.btn_demitir = ctk.CTkButton(self.menu_lateral, text='Demitir',
@@ -38,6 +39,36 @@ class View_Professor:
         for tela in self.area_conteudo.winfo_children():
             tela.destroy()
 
+    def aba_demitir(self):
+        self.limpar()
+        ctk.CTkLabel(self.area_conteudo,
+                     text='Demitir Professor',
+                     font=('Arial', 20, 'bold')
+                     ).pack(pady=10)
+        digt_nome_prof = ctk.CTkEntry(self.area_conteudo,
+                                      placeholder_text='Digite o nome do(a) Professor(a)',
+                                      width=300
+                                      )
+        digt_nome_prof.pack(pady=20)
+
+        def acao_demitir_professor():
+            nome_prof = digt_nome_prof.get().strip().title()
+
+            if nome_prof.strip() == '':
+                messagebox.showwarning('Atenção! Preencha os campos')
+                return
+
+            successo = self.logica_professor.demitir_professor(nome_prof)
+            if successo:
+                messagebox.showinfo(f'Sucesso, o professor {nome_prof} foi desligado')
+                digt_nome_prof.delete(0, 'end')
+            else:
+                messagebox.showerror(f'Erro: Não foi possivel demitir o o professor {nome_prof}')
+
+        btn_demitir= ctk.CTkButton(self.area_conteudo,
+                                        text='Demitir',
+                                        command=acao_demitir_professor)
+        btn_demitir.pack(pady=20)
     def aba_contratar(self):
 
         self.limpar()
@@ -79,37 +110,69 @@ class View_Professor:
                                              text="Contratar",
                                              command=acao_salvar_professor)
         btn_salvar_prof.pack(pady=20)
-
-    def aba_demitir(self):
+    def aba_modicar(self):
         self.limpar()
         ctk.CTkLabel(self.area_conteudo,
-                     text='Demitir Professor',
+                     text='Buscar Professor',
                      font=('Arial', 20, 'bold')
                      ).pack(pady=10)
-        digt_nome_prof = ctk.CTkEntry(self.area_conteudo,
-                                      placeholder_text='Digite o nome do(a) Professor(a)',
+        prof_busca = ctk.CTkEntry(self.area_conteudo,
+                                      placeholder_text='Digite o nome do Professor',
                                       width=300
                                       )
-        digt_nome_prof.pack(pady=20)
+        prof_busca.pack(pady=5)
 
-        def acao_demitir_professor():
-            nome_prof = digt_nome_prof.get().strip().title()
+        self.caixa_edicao = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
 
-            if nome_prof.strip() == '':
-                messagebox.showwarning('Atenção! Preencha os campos')
-                return
+        def verificar_professor():
+            nome = prof_busca.get().strip()
+            dados = self.logica_professor.busca(nome)
 
-            successo = self.logica_professor.demitir_professor(nome_prof)
-            if successo:
-                messagebox.showinfo(f'Sucesso, o professor {nome_prof} foi desligado')
-                digt_nome_prof.delete(0, 'end')
+            if dados:
+                for tela in self.caixa_edicao.winfo_children():
+                    tela.destroy()
+                self.caixa_edicao.pack(pady=20, fill='both', expand=True)
+
+                id_prof, nome_atual, dtn_atual, materia_atual = dados
+
+                ctk.CTkLabel(self.caixa_edicao, text='Nome do Professor: ').pack(anchor='w', pady=5)
+                ent_novo_nome = ctk.CTkEntry(self.caixa_edicao, width=300)
+                ent_novo_nome.insert(0, nome_atual)
+                ent_novo_nome.pack(pady=5)
+
+                ctk.CTkLabel(self.caixa_edicao, text='Data de Nascimento: ').pack(anchor='w', pady=5)
+                ent_novo_dtn =ctk.CTkEntry(self.caixa_edicao, width=300)
+                ent_novo_dtn.insert(0, dtn_atual)
+                ent_novo_dtn.pack(pady=5)
+
+                ctk.CTkLabel(self.caixa_edicao, text=f'Editando: {nome_atual} (ID:{id_prof})').pack()
+                ent_nova_materia = ctk.CTkEntry(self.caixa_edicao, width=300)
+                ent_nova_materia.insert(0, materia_atual)
+                ent_nova_materia.pack(pady=10)
+
+                def salvar_alteração():
+                    nome_final = ent_novo_nome.get().strip()
+                    dtn_final = ent_novo_dtn.get().isdigit().strip()
+                    materia_final = ent_nova_materia.get().strip()
+
+                    if nome_final and materia_final:
+                        sucesso = self.logica_professor.atualizar_professor_completo(id_prof, nome_final, materia_final)
+                        if sucesso:
+                            messagebox.showinfo("Sucesso", "Dados atualizados com sucesso!")
+                            self.caixa_edicao.pack_forget()  # Esconde após salvar
+                            prof_busca.delete(0, 'end')
+                        else:
+                            messagebox.showerror("Erro", "Não foi possível atualizar.")
+                    else:
+                        messagebox.showwarning("Atenção", "Preencha todos os campos!")
+
+                ctk.CTkButton(self.caixa_edicao, text="Salvar Alterações", fg_color="green",
+                              command=salvar_alteração).pack(pady=20)
             else:
-                messagebox.showerror(f'Erro: Não foi possivel demitir o o professor {nome_prof}')
+                messagebox.showerror("Erro", "Professor não encontrado!")
+                self.caixa_edicao.pack_forget()
 
-        btn_demitir= ctk.CTkButton(self.area_conteudo,
-                                        text='Demitir',
-                                        command=acao_demitir_professor)
-        btn_demitir.pack(pady=20)
+        ctk.CTkButton(self.area_conteudo, text="Buscar e Editar", command=verificar_professor).pack
 
 class GUIHogwarts(ctk.CTk):
      def __init__(self):
