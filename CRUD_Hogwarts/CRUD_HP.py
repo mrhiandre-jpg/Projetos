@@ -88,23 +88,26 @@ class Professor:
                 print('Professor não encontrado!')
         except sqlite3.IntegrityError as e:
             print(f'Erro ao atualizar: {e}')
-    def demitir_professor(self, id_professor):
-        sql = "DELETE FROM professores WHERE id_professor = ?"
+    def demitir_professor(self, nome_professor):
+        sql = "DELETE FROM professores WHERE nome_professor = ?"
 
         try:
-            self.cursor.execute(sql, (id_professor,))
+            self.cursor.execute(sql, (nome_professor,))
             self.conn.commit()
             if self.cursor.rowcount > 0:
-                print(f"Professor ID {id_professor} demitido.")
+                print(f'Professor {nome_professor} foi desligado.')
+                return True
             else:
                 print("Professor não encontrado.")
+                return False
 
         except sqlite3.IntegrityError:
-            # É aqui que cai se ele for Coordenador de uma casa
-            print(f"ERRO: Não é possível demitir o ID {id_professor} pois ele é Coordenador de uma Casa!")
+
+            print(f'ERRO: Não é possível demitir o ID {nome_professor} pois ele é Coordenador de uma Casa!')
             print("Dica: Troque o coordenador da casa primeiro antes de demitir este.")
         except sqlite3.Error as e:
-            print(f"Erro ao deletar: {e}")
+            print(f'Erro ao deletar: {e}')
+            return False
 
 class Casas:
     def __init__(self, cursor_banco, conexao_banco):
