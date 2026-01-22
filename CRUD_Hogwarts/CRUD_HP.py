@@ -67,19 +67,19 @@ class Professor:
         self.cursor = cursor_banco
         self.conn = conexao_banco
 
-    def contratar(self, nome, data_de_nascimento, idade_professor, materia_de_ensino):
-        sql = 'INSERT INTO professores (nome_professor, data_nascimento, idade_professor, materia_de_ensino) VALUES (?, ?)'
+    def contratar(self, nome, data_de_nascimento, materia_de_ensino):
+        sql = 'INSERT INTO professores (nome_professor, data_nascimento,materia_de_ensino) VALUES (?, ?,?)'
         try:
-            self.cursor.execute(sql, (nome, data_de_nascimento, idade_professor, materia_de_ensino))
+            self.cursor.execute(sql, (nome, data_de_nascimento, materia_de_ensino))
             self.conn.commit()
             print(f'Professor {nome} contratado com sucesso!')
             return self.cursor.lastrowid
         except sqlite3.IntegrityError as e:
             print(f'Erro ao cadastrar {e}')
             return None
-    def busca(self, nome_busca):
-        sql = 'SELECT * FROM professores WHERE nome_professor = ?'
-        self.cursor.execute(sql, (nome_busca,))
+    def busca(self, nome):
+        sql = "SELECT id_professor, nome_professor,data_nascimento, materia_de_ensino FROM professores WHERE nome_professor = ?"
+        self.cursor.execute(sql, (nome,))
         resultado = self.cursor.fetchone()
 
         return resultado
