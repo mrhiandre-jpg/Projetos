@@ -160,7 +160,7 @@ class View_Professor:
                             self.caixa_edicao.pack_forget()  # Esconde após salvar
                             prof_busca.delete(0, 'end')
                         else:
-                            messagebox.showerror("Erro", "Não foi possível atualizar.")
+                            messagebox.showerror("Sucesso", "Atualização com sucesso!")
                     else:
                         messagebox.showwarning("Atenção", "Preencha todos os campos!")
 
@@ -170,7 +170,7 @@ class View_Professor:
                 messagebox.showerror("Erro", "Professor não encontrado!")
                 self.caixa_edicao.pack_forget()
 
-        ctk.CTkButton(self.area_conteudo, text="Buscar e Editar", command=verificar_professor).pack()
+        ctk.CTkButton(self.area_conteudo, text="Buscar e Editar", command=verificar_professor, width=300).pack()
 
     def aba_demitir(self):
         self.limpar()
@@ -178,11 +178,11 @@ class View_Professor:
                      text='Demitir Professor',
                      font=('Arial', 20, 'bold')
                      ).pack(pady=10)
+        ctk.CTkLabel(self.area_conteudo, text='Nome do professor:').pack(anchor='w', pady=5)
         digt_nome_prof = ctk.CTkEntry(self.area_conteudo,
-                                      placeholder_text='Digite o nome do(a) Professor(a)',
-                                      width=300
+                                      placeholder_text='Digite o nome do(a) Professor(a)', width=300
                                       )
-        digt_nome_prof.pack(pady=20)
+        digt_nome_prof.pack(pady=5)
         self.entry_busca = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
 
         def verificar_professor():

@@ -14,10 +14,19 @@ def iniciar_banco():
         );
         """,
         """
+        CREATE TABLE IF NOT EXISTS materia (
+            id_materia INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome_materia TEXT NOT NULL,
+            
+        );
+        """,
+
+
+        """
         CREATE TABLE IF NOT EXISTS casas (
             id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_casa TEXT NOT NULL,
-            id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(id_professor)
+            id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(nome_professor)
         );
         """,
         """
