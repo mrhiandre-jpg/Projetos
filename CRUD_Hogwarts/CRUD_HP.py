@@ -1,10 +1,15 @@
 import sqlite3
 
 def iniciar_banco():
-    conn = sqlite3.connect('hogwarts.db')
-    cursor = conn.cursor()
-
     sql_tabelas = [
+        """
+        CREATE TABLE IF NOT EXISTS materia(
+            id_materia INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome_materia TEXT NOT NULL UNIQUE,
+            descricao TEXT NOT NULL,
+            e_obrigatori BOOLEAN DEFAULT 1
+        );
+        """,
         """
         CREATE TABLE IF NOT EXISTS professores (
             id_professor INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,15 +18,6 @@ def iniciar_banco():
             materia_de_ensino TEXT 
         );
         """,
-        """
-        CREATE TABLE IF NOT EXISTS materia (
-            id_materia INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome_materia TEXT NOT NULL,
-            
-        );
-        """,
-
-
         """
         CREATE TABLE IF NOT EXISTS casas (
             id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,6 +59,9 @@ def iniciar_banco():
         END;
         """
     ]
+    conn = sqlite3.connect('hogwarts.db')
+    cursor = conn.cursor()
+
 
     for sql in sql_tabelas:
         cursor.execute(sql)
@@ -176,6 +175,26 @@ class Ano:
         except sqlite3.IntegrityError:
             print(f'Erro ao cadastrar ano {numero}')
             return None
+class Materia:
+    def __init__(self, cursor_banco, conexao_banco):
+        self.cursor = cursor_banco
+        self.conn = conexao_banco
+
+    def criar_materia(self, nome, descricao='', obrigatorio=False):
+        sql = 'INSERT INTO materia(nome_materia, descricao, obrigatorio) VALUES (?, ?, ?)'
+        try:
+            self.cursor.execute(sql, (nome, descricao, obrigatorio))
+            self.conn.commit()
+            print(f'Materia {nome} criada com sucesso!')
+            return True
+        except sqlite3.IntegrityError:
+            print(f'Erro ao cadastrar materia {nome}')
+            return None
+    def listar_materia(self):
+        sql = 'SELECT nome_materia FROM materia'
+        self.cursor.execute(sql)
+        return [linha[0] for linha in self.cursor.fetchall()]
+
 class Alunos:
     def __init__(self, cursor_banco, conexao_banco):
         self.cursor = cursor_banco
@@ -217,6 +236,7 @@ class Alunos:
 
 class Menu:
     def __init__(self, cursor, conn):
+        self.ge_materia = Materia(self.cursor, self.conn)
         self.ge_prof = Professor(cursor, conn)
         self.ge_casa = Casas(cursor, conn)
         self.ge_ano = Ano(cursor, conn)

@@ -1,9 +1,77 @@
+
+
 import customtkinter as ctk
-from tkinter import messagebox
-from CRUD_HP import iniciar_banco, Professor, Casas, Ano, Alunos
+from tkinter import messagebox, StringVar
+from CRUD_HP import iniciar_banco, Professor, Casas, Ano, Materia, Alunos
 
 ctk.set_appearance_mode('Dark')
 ctk.set_default_color_theme('blue')
+
+class View_Materia:
+    def __init__(self, mestre, conn, cursor):
+
+        self.mestre = mestre
+        self.conn = conn
+        self.cursor = cursor
+
+        self.logica_materia = Materia(self.cursor, self.conn)
+
+        self.container = ctk.CTkFrame(self.mestre, fg_color='transparent')
+        self.container.pack(fill='both', expand=True)
+
+        self.menu_lateral = ctk.CTkFrame(self.container, width=140, corner_radius=0)
+        self.menu_lateral.pack(side='left', fill='y')
+
+        self.area_conteudo = ctk.CTkFrame(self.container, corner_radius=0, fg_color='transparent')
+        self.area_conteudo.pack(side='right', fill='both', expand=True, padx=20, pady=20)
+
+        self.btn_cria = ctk.CTkButton(self.menu_lateral, text='Cria Materia',
+                                           command=self.criar_materia)
+        self.btn_cria.pack(pady=5, padx=5)
+
+        #self.btn_modi = ctk.CTkButton(self.menu_lateral, text='modificar', command=self.aba_modificar)
+        #self.btn_modi.pack(pady=5, padx=5)
+
+        self.criar_materia()
+    def limpar(self):
+        for tela in self.area_conteudo.winfo_children():
+            tela.destroy()
+    def criar_materia(self):
+        self.limpar()
+        ctk.CTkLabel(self.area_conteudo, text='Criar Materia', font=('Arial', 20, 'bold')).pack(pady=10)
+
+        container_nome_materia = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
+        container_nome_materia.pack(pady=(0,10))
+
+        ctk.CTkLabel(container_nome_materia, text='Nome da Materia', font=('Arial', 12, 'bold')).pack(anchor='w')
+        digt_nome_materia = ctk.CTkEntry(container_nome_materia, placeholder_text='Digite o nome da Materia', width=300)
+        digt_nome_materia.pack(pady=5)
+
+        container_desc_materia = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
+        container_desc_materia.pack(pady=(0,10))
+
+        ctk.CTkLabel(container_desc_materia, text='Descrição', font=('Arial', 12, 'bold')).pack(anchor='w')
+        digt_desc_materia = ctk.CTkEntry(container_desc_materia, placeholder_text='Descrição da materia', width=300)
+        digt_desc_materia.pack(pady=5)
+
+
+        self.var_obrigatoria = ctk.IntVar(value=1)
+        check_obrigatoria = ctk.CTkCheckBox(self.area_conteudo, text='É Obrigatoria', variable=self.var_obrigatoria, on_value=1, off_value=0)
+        check_obrigatoria.pack(pady=5)
+
+        def acao_salvar():
+            nome = digt_nome_materia.get()
+            descricao = digt_desc_materia.get()
+            eh_obrigatorio = self.var_obrigatoria.get()
+            print(f'Obrigatorio: {eh_obrigatorio}')
+
+            if not nome:
+                messagebox.showwarning('Erro', 'Digite um nome de materia')
+                return
+            print(f'Salvando: {nome}, desc {descricao}, obrigatorrio')
+            self.logica_materia.criar_materia(nome, descricao, eh_obrigatorio)
+        btn_salvar_materia = ctk.CTkButton(self.area_conteudo, text='Salvar', command=acao_salvar)
+        btn_salvar_materia.pack(pady=20)
 
 class View_Professor:
     def __init__(self, mestre, cursor, conn):
@@ -35,6 +103,8 @@ class View_Professor:
         self.btn_demitir.pack(pady=5, padx=5)
 
         self.aba_contratar()
+        self.aba_modicar()
+        self.aba_demitir()
     def limpar(self):
         for tela in self.area_conteudo.winfo_children():
             tela.destroy()
@@ -43,7 +113,7 @@ class View_Professor:
         self.limpar()
 
         ctk.CTkLabel(self.area_conteudo,
-            text="Contratar do Professor",
+            text='Contratar do Professor',
             font=('Arial', 20, 'bold')
             ).pack(pady=10)
 
@@ -218,39 +288,41 @@ class View_Professor:
                 else:
                     messagebox.showerror(f'Erro: Não foi possivel demitir o o professor {nome_prof}')
 
-            ctk.CTkButton(self.entry_busca, text="Salvar Alterações", fg_color="green",
+            ctk.CTkButton(self.entry_busca, text="DEMITIR", fg_color="green",
                             command=acao_demitir_professor).pack(pady=5)
 
         btn_demitir= ctk.CTkButton(self.area_conteudo,
-                                            text='Demitir',
+                                            text='BUSCAR',
                                             command=verificar_professor)
         btn_demitir.pack(pady=20)
 
 
 class GUIHogwarts(ctk.CTk):
-     def __init__(self):
-         super().__init__()
-         self.title('CRUD Hogwarts')
-         self.geometry('600x600')
+    def __init__(self):
+        super().__init__()
+        self.title('CRUD Hogwarts')
+        self.geometry('600x600')
 
-         print('Conectando ao banco de dados')
-         self.conn , self.cursor = iniciar_banco()
+        print('Conectando ao banco de dados')
+        self.conn , self.cursor = iniciar_banco()
 
-         self.ge_professor = Professor(self.conn , self.cursor)
-         self.ge_casa = Casas(self.conn , self.cursor)
-         self.ge_ano = Ano(self.conn , self.cursor)
-         self.ge_aluno = Alunos(self.conn , self.cursor)
+        self.ge_materia = Materia(self.conn, self.cursor)
+        self.ge_professor = Professor(self.conn , self.cursor)
+        self.ge_casa = Casas(self.conn , self.cursor)
+        self.ge_ano = Ano(self.conn , self.cursor)
+        self.ge_aluno = Alunos(self.conn , self.cursor)
 
-         self.abas = ctk.CTkTabview(self, width=400, height=400)
-         self.abas.pack(pady=20)
+        self.abas = ctk.CTkTabview(self, width=400, height=400)
+        self.abas.pack(pady=20)
 
-         self.abas.add('Professores')
-         self.abas.add('Casas')
-         self.abas.add('Ano')
-         self.abas.add('Alunos')
+        self.abas.add('Materias')
+        self.abas.add('Professores')
+        self.abas.add('Casas')
+        self.abas.add('Ano')
+        self.abas.add('Alunos')
 
-         View_Professor(self.abas.tab('Professores'), self.cursor, self.conn)
-
+        View_Professor(self.abas.tab('Professores'), self.conn, self.cursor )
+        View_Materia(self.abas.tab('Materias'), self.cursor, self.conn)
 
 if __name__ == '__main__':
     app = GUIHogwarts()
