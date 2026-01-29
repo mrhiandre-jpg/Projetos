@@ -1,10 +1,15 @@
 import sqlite3
 
 def iniciar_banco():
-    conn = sqlite3.connect('hogwarts.db')
-    cursor = conn.cursor()
-
     sql_tabelas = [
+        """
+        CREATE TABLE IF NOT EXISTS materia(
+            id_materia INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome_materia TEXT NOT NULL UNIQUE,
+            descricao TEXT NOT NULL,
+            e_obrigatori BOOLEAN DEFAULT 1
+        );
+        """,
         """
         CREATE TABLE IF NOT EXISTS professores (
             id_professor INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -17,7 +22,7 @@ def iniciar_banco():
         CREATE TABLE IF NOT EXISTS casas (
             id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_casa TEXT NOT NULL,
-            id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(id_professor)
+            id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(nome_professor)
         );
         """,
         """
@@ -54,6 +59,9 @@ def iniciar_banco():
         END;
         """
     ]
+    conn = sqlite3.connect('hogwarts.db')
+    cursor = conn.cursor()
+
 
     for sql in sql_tabelas:
         cursor.execute(sql)
@@ -61,6 +69,48 @@ def iniciar_banco():
     print("--- Tabelas verificadas/criadas com sucesso ---")
 
     return conn, cursor
+
+class Materia:
+    def __init__(self, cursor_banco, conexao_banco):
+        self.cursor = cursor_banco
+        self.conn = conexao_banco
+
+    def criar_materia(self, nome, descricao='', obrigatorio=False):
+        sql = 'INSERT INTO materia(nome_materia, descricao, e_obrigatori) VALUES (?, ?, ?)'
+        try:
+            self.cursor.execute(sql, (nome, descricao, obrigatorio))
+            self.conn.commit()
+            print(f'Materia {nome} criada com sucesso!')
+            return True
+        except Exception as e:
+            print(f"Erro: {e}")
+            return False
+    def listar_materia(self):
+        sql = 'SELECT nome_materia, descricao, e_obrigatori FROM materia'
+        self.cursor.execute(sql,)
+        return self.cursor.fetchall()
+
+    def deletar_materia(self, nome_materia):
+        try:
+            sql_verificar = 'SELECT e_obrigatoria FROM materia WHERE nome_materia = ?'
+            self.cursor.execute(sql_verificar, (nome_materia,))
+            resultado = self.cursor.fetchone()
+            if not resultado:
+                return False,  f'Materia {nome_materia} não encontrada'
+            eh_obrigatoria = resultado[0]
+            if eh_obrigatoria == 1:
+                return False, f'Bloqueado: Materia {nome_materia} obriagatorio'
+
+            sql_delete = 'DELETE FROM materia WHERE nome_materia = ?'
+            self.cursor.execute(sql_delete  , (nome_materia,))
+            self.conn.commit()
+
+            return True, f'Materia {nome_materia} deletada com sucesso!'
+        except sqlite3.IntegrityError:
+                return False, f'Erro: Materia {nome_materia} não pode ser apagada pois eh obrigatoria'
+        except Exception as e:
+            return False, f'Erro: {e}'
+
 
 class Professor:
     def __init__(self, cursor_banco, conexao_banco):
@@ -208,6 +258,7 @@ class Alunos:
 
 class Menu:
     def __init__(self, cursor, conn):
+        self.ge_materia = Materia(cursor, conn)
         self.ge_prof = Professor(cursor, conn)
         self.ge_casa = Casas(cursor, conn)
         self.ge_ano = Ano(cursor, conn)

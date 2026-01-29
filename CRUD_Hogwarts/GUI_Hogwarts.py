@@ -1,9 +1,102 @@
+
+
 import customtkinter as ctk
-from tkinter import messagebox
-from CRUD_HP import iniciar_banco, Professor, Casas, Ano, Alunos
+from tkinter import messagebox, StringVar
+
+from streamlit import container
+
+from CRUD_HP import iniciar_banco, Professor, Casas, Ano, Materia, Alunos
 
 ctk.set_appearance_mode('Dark')
 ctk.set_default_color_theme('blue')
+
+class View_Materia:
+    def __init__(self, mestre, cursor, conn):
+
+        self.mestre = mestre
+        self.cursor = cursor
+        self.conn = conn
+
+        self.logica_materia = Materia(self.cursor, self.conn)
+
+        self.container = ctk.CTkFrame(self.mestre, fg_color='transparent')
+        self.container.pack(fill='both', expand=True)
+
+        self.menu_lateral = ctk.CTkFrame(self.container, width=140, corner_radius=0)
+        self.menu_lateral.pack(side='left', fill='y')
+
+        self.area_conteudo = ctk.CTkFrame(self.container, corner_radius=0, fg_color='transparent')
+        self.area_conteudo.pack(side='right', fill='both', expand=True, padx=20, pady=20)
+
+        self.btn_cria = ctk.CTkButton(self.menu_lateral, text='Cria Materia',
+                                           command=self.criar_materia)
+        self.btn_cria.pack(pady=5, padx=5)
+
+        self.btn_modi = ctk.CTkButton(self.menu_lateral, text='modificar', command=self.modificar_materia)
+        self.btn_modi.pack(pady=5, padx=5)
+
+        self.criar_materia()
+        self.criar_materia()
+    def limpar(self):
+        for tela in self.area_conteudo.winfo_children():
+            tela.destroy()
+    def criar_materia(self):
+        self.limpar()
+        ctk.CTkLabel(self.area_conteudo, text='Criar Materia', font=('Arial', 20, 'bold')).pack(pady=10)
+
+        container_nome_materia = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
+        container_nome_materia.pack(pady=(0,10))
+
+        ctk.CTkLabel(container_nome_materia, text='Nome da Materia', font=('Arial', 12, 'bold')).pack(anchor='w')
+        digt_nome_materia = ctk.CTkEntry(container_nome_materia, placeholder_text='Digite o nome da Materia', width=300)
+        digt_nome_materia.pack(pady=5)
+
+        container_desc_materia = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
+        container_desc_materia.pack(pady=(0,10))
+
+        ctk.CTkLabel(container_desc_materia, text='Descrição', font=('Arial', 12, 'bold')).pack(anchor='w')
+        digt_desc_materia = ctk.CTkTextbox(container_desc_materia, width=300, height=100 )
+        digt_desc_materia.pack(pady=5)
+
+
+        self.var_obrigatoria = ctk.IntVar(value=1)
+        check_obrigatoria = ctk.CTkCheckBox(self.area_conteudo, text='É Obrigatoria', variable=self.var_obrigatoria, onvalue=1, offvalue=0)
+        check_obrigatoria.pack(pady=5, anchor='w')
+
+        def acao_salvar():
+            nome = digt_nome_materia.get().strip()
+            descricao = digt_desc_materia.get('0.0', 'end').strip()
+            eh_obrigatorio = self.var_obrigatoria.get()
+            print(f'Obrigatorio: {nome}')
+
+            if not nome:
+                messagebox.showwarning('Erro', 'Digite um nome de materia')
+                return
+            print(f'Salvando: {nome}, desc {descricao}, obrigatorrio')
+            sucesso = self.logica_materia.criar_materia(nome, descricao, eh_obrigatorio)
+
+            if sucesso:
+                messagebox.showinfo('Sucesso:', f'Matéria {nome} criada com sucesso')
+                digt_nome_materia.delete(0, 'end')
+                digt_desc_materia.delete('0.0', 'end')
+
+                digt_nome_materia.focus()
+            else:
+                messagebox.showerror('Erro', 'Não foi possível salvar a matéria.')
+        btn_salvar_materia = ctk.CTkButton(self.area_conteudo, text='Salvar', command=acao_salvar)
+        btn_salvar_materia.pack(pady=20)
+    def modificar_materia(self):
+        self.limpar()
+        ctk.CTkLabel(self.area_conteudo, text='Buscar Materia', font=('Arial', 20, 'bold')).pack(pady=10, anchor='w')
+
+        container_nome = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
+        container_nome.pack(pady=(0,10))
+
+        ctk.CTkLabel(container_nome, placeholder_text='Digite o nome da Materia', font=('Arial', 12, 'bold')).pack(anchor='w')
+
+        materia_busca = ctk.CTkFrame(self.area_conteudo, fg_color='transparent', width=300)
+        materia_busca.pack(pady=(5))
+        self.caixa_edicao = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
 
 class View_Professor:
     def __init__(self, mestre, cursor, conn):
@@ -35,6 +128,8 @@ class View_Professor:
         self.btn_demitir.pack(pady=5, padx=5)
 
         self.aba_contratar()
+        self.aba_modicar()
+        self.aba_demitir()
     def limpar(self):
         for tela in self.area_conteudo.winfo_children():
             tela.destroy()
@@ -43,7 +138,7 @@ class View_Professor:
         self.limpar()
 
         ctk.CTkLabel(self.area_conteudo,
-            text="Contratar do Professor",
+            text='Contratar do Professor',
             font=('Arial', 20, 'bold')
             ).pack(pady=10)
 
@@ -84,7 +179,7 @@ class View_Professor:
             materia = digt_material_prof.get()
 
             if nome.strip() == ''  or data.strip() == '' or materia.strip() == '':
-                messagebox.showwarning('Atenção! Preencha os campos')
+                messagebox.showwarning('Atenção!', 'Preencha os campos')
                 return
 
             successo = self.logica_professor.contratar(nome, data, materia)
@@ -93,8 +188,10 @@ class View_Professor:
                 digt_nome_prof.delete(0, 'end')
                 digt_dtn_prof.delete(0, 'end')
                 digt_material_prof.delete(0, 'end')
+
+                digt_nome_prof.focus()
             else:
-                messagebox.showerror('Erro: Não foi possível realizar a contratação')
+                messagebox.showerror('Erro:', 'Não foi possível realizar a contratação')
 
 
         btn_salvar_prof = ctk.CTkButton(self.area_conteudo,
@@ -103,19 +200,13 @@ class View_Professor:
         btn_salvar_prof.pack(pady=20)
     def aba_modicar(self):
         self.limpar()
-        ctk.CTkLabel(self.area_conteudo,
-                     text='Buscar Professor',
-                     font=('Arial', 20, 'bold')
-                     ).pack(pady=10)
-        container_nome = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
+        ctk.CTkLabel(self.area_conteudo,text='Buscar Professor',font=('Arial', 20, 'bold')).pack(pady=10)
+        container_nome = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
         container_nome.pack(pady=(0,10))
 
-        ctk.CTkLabel(container_nome, text="Nome do Professor:", font=('Arial', 12, 'bold')).pack(anchor="w")
+        ctk.CTkLabel(container_nome, text='Nome do Professor:', font=('Arial', 12, 'bold')).pack(anchor='w')
 
-        prof_busca = ctk.CTkEntry(container_nome,
-                                      placeholder_text='Digite o nome do Professor',
-                                      width=300
-                                      )
+        prof_busca = ctk.CTkEntry(container_nome, placeholder_text='Digite o nome do Professor',width=300)
         prof_busca.pack(pady=5)
 
         self.caixa_edicao = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
@@ -156,21 +247,21 @@ class View_Professor:
                     if nome_final and materia_final:
                         sucesso = self.logica_professor.atualizar(id_prof, nome_final, dtn_final, materia_final)
                         if sucesso:
-                            messagebox.showinfo("Sucesso", "Dados atualizados com sucesso!")
+                            messagebox.showinfo('Sucesso', 'Dados atualizados com sucesso!')
                             self.caixa_edicao.pack_forget()  # Esconde após salvar
                             prof_busca.delete(0, 'end')
                         else:
-                            messagebox.showerror("Erro", "Não foi possível atualizar.")
+                            messagebox.showerror('Sucesso', 'Atualização com sucesso!')
                     else:
-                        messagebox.showwarning("Atenção", "Preencha todos os campos!")
+                        messagebox.showwarning('Atenção', 'Preencha todos os campos!')
 
-                ctk.CTkButton(self.caixa_edicao, text="Salvar Alterações", fg_color="green",
+                ctk.CTkButton(self.caixa_edicao, text='Salvar Alterações', fg_color='green',
                               command=salvar_alteração).pack(pady=5)
             else:
-                messagebox.showerror("Erro", "Professor não encontrado!")
+                messagebox.showerror('Erro', 'Professor não encontrado!')
                 self.caixa_edicao.pack_forget()
 
-        ctk.CTkButton(self.area_conteudo, text="Buscar e Editar", command=verificar_professor).pack()
+        ctk.CTkButton(self.area_conteudo, text='Buscar e Editar', command=verificar_professor, width=300).pack()
 
     def aba_demitir(self):
         self.limpar()
@@ -178,11 +269,11 @@ class View_Professor:
                      text='Demitir Professor',
                      font=('Arial', 20, 'bold')
                      ).pack(pady=10)
+        ctk.CTkLabel(self.area_conteudo, text='Nome do professor:').pack(anchor='w', pady=5)
         digt_nome_prof = ctk.CTkEntry(self.area_conteudo,
-                                      placeholder_text='Digite o nome do(a) Professor(a)',
-                                      width=300
+                                      placeholder_text='Digite o nome do(a) Professor(a)', width=300
                                       )
-        digt_nome_prof.pack(pady=20)
+        digt_nome_prof.pack(pady=5)
         self.entry_busca = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
 
         def verificar_professor():
@@ -208,49 +299,51 @@ class View_Professor:
                 nome_prof = digt_nome_prof.get().strip().title()
 
                 if nome_prof.strip() == '':
-                    messagebox.showwarning('Atenção! Preencha os campos')
+                    messagebox.showwarning('Atenção!', 'Preencha os campos')
                     return
 
                 successo = self.logica_professor.demitir_professor(nome_prof)
                 if successo:
-                    messagebox.showinfo(f'Sucesso, o professor {nome_prof} foi desligado')
+                    messagebox.showinfo('Sucesso:', f'o professor {nome_prof} foi desligado')
                     digt_nome_prof.delete(0, 'end')
                 else:
-                    messagebox.showerror(f'Erro: Não foi possivel demitir o o professor {nome_prof}')
+                    messagebox.showerror('Erro:' f'Não foi possivel demitir o o professor {nome_prof}')
 
-            ctk.CTkButton(self.entry_busca, text="Salvar Alterações", fg_color="green",
+            ctk.CTkButton(self.entry_busca, text="DEMITIR", fg_color="green",
                             command=acao_demitir_professor).pack(pady=5)
 
         btn_demitir= ctk.CTkButton(self.area_conteudo,
-                                            text='Demitir',
+                                            text='BUSCAR',
                                             command=verificar_professor)
         btn_demitir.pack(pady=20)
 
 
 class GUIHogwarts(ctk.CTk):
-     def __init__(self):
-         super().__init__()
-         self.title('CRUD Hogwarts')
-         self.geometry('600x600')
+    def __init__(self):
+        super().__init__()
+        self.title('CRUD Hogwarts')
+        self.geometry('600x600')
 
-         print('Conectando ao banco de dados')
-         self.conn , self.cursor = iniciar_banco()
+        print('Conectando ao banco de dados')
+        self.conn , self.cursor = iniciar_banco()
 
-         self.ge_professor = Professor(self.conn , self.cursor)
-         self.ge_casa = Casas(self.conn , self.cursor)
-         self.ge_ano = Ano(self.conn , self.cursor)
-         self.ge_aluno = Alunos(self.conn , self.cursor)
+        self.ge_materia = Materia(self.conn, self.cursor)
+        self.ge_professor = Professor(self.conn , self.cursor)
+        self.ge_casa = Casas(self.conn , self.cursor)
+        self.ge_ano = Ano(self.conn , self.cursor)
+        self.ge_aluno = Alunos(self.conn , self.cursor)
 
-         self.abas = ctk.CTkTabview(self, width=400, height=400)
-         self.abas.pack(pady=20)
+        self.abas = ctk.CTkTabview(self, width=400, height=400)
+        self.abas.pack(pady=20)
 
-         self.abas.add('Professores')
-         self.abas.add('Casas')
-         self.abas.add('Ano')
-         self.abas.add('Alunos')
+        self.abas.add('Materias')
+        self.abas.add('Professores')
+        self.abas.add('Casas')
+        self.abas.add('Ano')
+        self.abas.add('Alunos')
 
-         View_Professor(self.abas.tab('Professores'), self.cursor, self.conn)
-
+        View_Professor(self.abas.tab('Professores'), self.conn, self.cursor )
+        View_Materia(self.abas.tab('Materias'), self.cursor, self.conn)
 
 if __name__ == '__main__':
     app = GUIHogwarts()
