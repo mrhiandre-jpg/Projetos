@@ -87,15 +87,15 @@ class View_Materia:
         btn_salvar_materia.pack(pady=20)
     def modificar_materia(self):
         self.limpar()
-        ctk.CTkLabel(self.area_conteudo, text='Buscar Materia', font=('Arial', 20, 'bold')).pack(pady=10, anchor='w')
-
+        ctk.CTkLabel(self.area_conteudo, text='Buscar Materia', font=('Arial', 20, 'bold')).pack(pady=10)
         container_nome = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
         container_nome.pack(pady=(0,10))
 
-        ctk.CTkLabel(container_nome, placeholder_text='Digite o nome da Materia', font=('Arial', 12, 'bold')).pack(anchor='w')
+        ctk.CTkLabel(container_nome, text='Digite o nome da Materia', font=('Arial', 12, 'bold')).pack(anchor='w')
 
-        materia_busca = ctk.CTkFrame(self.area_conteudo, fg_color='transparent', width=300)
+        materia_busca = ctk.CTkEntry(container_nome, fg_color='transparent', width=300)
         materia_busca.pack(pady=(5))
+
         self.caixa_edicao = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
 
 class View_Professor:
