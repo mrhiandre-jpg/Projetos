@@ -85,11 +85,28 @@ class Materia:
         except Exception as e:
             print(f"Erro: {e}")
             return False
-    def listar_materia(self):
-        sql = 'SELECT nome_materia, descricao, e_obrigatori FROM materia'
-        self.cursor.execute(sql,)
-        return self.cursor.fetchall()
+    def listar_materia(self, nome_materia):
+        sql = 'SELECT id_materia, nome_materia, descricao, e_obrigatori FROM materia WHERE nome_materia = ? COLLATE NOCASE'
+        try:
+            self.cursor.execute(sql,(nome_materia,))
+            return self.cursor.fetchone()
 
+        except Exception as e:
+            print(f"Erro ao buscar matéria: {e}")
+            return None
+    def atualizar(self,id_materia, novo_nome, nova_desc, novo_obrigatoria):
+        sql = 'UPDATE materia SET nome_materia = ?, descricao = ?, e_obrigaria =?  WHERE nome_materia = ?'
+        try:
+            novo = (novo_nome,nova_desc,novo_obrigatoria)
+            self.cursor.execute(sql, novo)
+            self.conn.commit()
+            if self.cursor.rowcount > 0:
+                print('Atualizado com sucesso!')
+            else:
+                print('Materia não encontrada')
+        except sqlite3.IntegrityError as e:
+            print(f'Erro ao atualizar: {e}')
+            return False
     def deletar_materia(self, nome_materia):
         try:
             sql_verificar = 'SELECT e_obrigatoria FROM materia WHERE nome_materia = ?'
@@ -149,6 +166,7 @@ class Professor:
             self.conn.commit()
             if self.cursor.rowcount > 0:
                 print(f'Atualização com sucesso!')
+                return True
             else:
                 print('Professor não encontrado!')
         except sqlite3.IntegrityError as e:

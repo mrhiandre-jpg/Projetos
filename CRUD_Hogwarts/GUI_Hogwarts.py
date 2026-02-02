@@ -1,10 +1,5 @@
-
-
 import customtkinter as ctk
-from tkinter import messagebox, StringVar
-
-from streamlit import container
-
+from tkinter import messagebox
 from CRUD_HP import iniciar_banco, Professor, Casas, Ano, Materia, Alunos
 
 ctk.set_appearance_mode('Dark')
@@ -97,6 +92,57 @@ class View_Materia:
         materia_busca.pack(pady=(5))
 
         self.caixa_edicao = ctk.CTkFrame(self.area_conteudo, fg_color='transparent')
+
+        def verificar_materia():
+            nome_busc = materia_busca.get()
+            dados = self.logica_materia.listar_materia(nome_busc)
+
+            if dados:
+                for tela in self.caixa_edicao.winfo_children():
+                    tela.destroy()
+                self.caixa_edicao.pack(pady=20, fill='both', expand=True)
+
+                id_materia, nome_materia, descricao, e_obrigatori = dados
+
+                ctk.CTkLabel(self.caixa_edicao, text=f'Editando {nome_materia}').pack(pady=10)
+
+                ctk.CTkLabel(self.caixa_edicao, text='Novo nome da Materia').pack(pady=10)
+                novo_nome = ctk.CTkEntry(container_nome, fg_color='transparent', width=300)
+                novo_nome.insert(0,nome_materia)
+                novo_nome.pack(pady=(5))
+
+                ctk.CTkLabel(self.caixa_edicao, text='Nova descrição da Materia').pack(pady=10)
+                nova_desc = ctk.CTkTextbox(container_nome, fg_color='transparent', width=300, height=300)
+                nova_desc.insert("1.0",descricao)
+                nova_desc.pack(pady=(5))
+
+                ctk.CTkLabel(self.caixa_edicao, text='E obrigatoria').pack(pady=10)
+
+                self.var_edit_obrigatoria = ctk.IntVar(value=e_obrigatori)
+                novo_obrigatoria = ctk.CTkCheckBox(self.caixa_edicao, text='É Obrigatoria',
+                                                    variable=self.var_edit_obrigatoria, onvalue=1, offvalue=0)
+                novo_obrigatoria.pack(pady=5, anchor='w')
+
+                def salvar_alteração():
+                    n_nome = novo_nome.get().strip()
+                    n_desc = nova_desc.get('1.0', 'end-1c').strip()
+                    n_obrigatoria = self.var_edit_obrigatoria.get()
+                    if n_nome and n_desc and n_obrigatoria:
+                        sucesso = self.logica_materia.atualizar(id_materia, n_nome, n_desc, n_obrigatoria)
+                        if sucesso:
+                            messagebox.showinfo('Sucesso', 'Dados atualizados com sucesso')
+                            self.caixa_edicao.pack_forget()
+                            nome_busc.delete(0, 'end')
+                        else:
+                            messagebox.showerror('Erro','erro')
+                    else:
+                        messagebox.showwarning('Atenção','Materia n encontrada')
+
+                ctk.CTkButton(self.caixa_edicao, text='Salvar Alteração', command= salvar_alteração,  fg_color='green').pack(pady=5)
+            else:
+                messagebox.showinfo('Aviso:', 'Materia não encontrada')
+
+        ctk.CTkButton(self.area_conteudo, text='Buscar e Editar', command=verificar_materia, width=300).pack()
 
 class View_Professor:
     def __init__(self, mestre, cursor, conn):
@@ -251,7 +297,7 @@ class View_Professor:
                             self.caixa_edicao.pack_forget()  # Esconde após salvar
                             prof_busca.delete(0, 'end')
                         else:
-                            messagebox.showerror('Sucesso', 'Atualização com sucesso!')
+                            messagebox.showinfo('Sucesso', 'Atualização com sucesso!')
                     else:
                         messagebox.showwarning('Atenção', 'Preencha todos os campos!')
 
@@ -307,7 +353,7 @@ class View_Professor:
                     messagebox.showinfo('Sucesso:', f'o professor {nome_prof} foi desligado')
                     digt_nome_prof.delete(0, 'end')
                 else:
-                    messagebox.showerror('Erro:' f'Não foi possivel demitir o o professor {nome_prof}')
+                    messagebox.showerror('Erro:', f'Não foi possivel demitir o o professor {nome_prof}')
 
             ctk.CTkButton(self.entry_busca, text="DEMITIR", fg_color="green",
                             command=acao_demitir_professor).pack(pady=5)
@@ -327,11 +373,11 @@ class GUIHogwarts(ctk.CTk):
         print('Conectando ao banco de dados')
         self.conn , self.cursor = iniciar_banco()
 
-        self.ge_materia = Materia(self.conn, self.cursor)
-        self.ge_professor = Professor(self.conn , self.cursor)
-        self.ge_casa = Casas(self.conn , self.cursor)
-        self.ge_ano = Ano(self.conn , self.cursor)
-        self.ge_aluno = Alunos(self.conn , self.cursor)
+        self.ge_materia = Materia(self.cursor, self.conn)
+        self.ge_professor = Professor(self.cursor, self.conn)
+        self.ge_casa = Casas(self.cursor, self.conn)
+        self.ge_ano = Ano(self.cursor, self.conn)
+        self.ge_aluno = Alunos(self.cursor, self.conn)
 
         self.abas = ctk.CTkTabview(self, width=400, height=400)
         self.abas.pack(pady=20)
@@ -342,7 +388,7 @@ class GUIHogwarts(ctk.CTk):
         self.abas.add('Ano')
         self.abas.add('Alunos')
 
-        View_Professor(self.abas.tab('Professores'), self.conn, self.cursor )
+        View_Professor(self.abas.tab('Professores'), self.cursor, self.conn )
         View_Materia(self.abas.tab('Materias'), self.cursor, self.conn)
 
 if __name__ == '__main__':
