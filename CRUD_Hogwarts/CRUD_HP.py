@@ -7,7 +7,7 @@ def iniciar_banco():
             id_materia INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_materia TEXT NOT NULL UNIQUE,
             descricao TEXT NOT NULL,
-            e_obrigatori BOOLEAN DEFAULT 1
+            e_obrigatorio BOOLEAN DEFAULT 1
         );
         """,
         """
@@ -95,7 +95,7 @@ class Materia:
             print(f"Erro ao buscar matéria: {e}")
             return None
     def atualizar(self,id_materia, novo_nome, nova_desc, novo_obrigatoria):
-        sql = 'UPDATE materia SET nome_materia = ?, descricao = ?, e_obrigaria =?  WHERE nome_materia = ?'
+        sql = 'UPDATE materia SET nome_materia = ?, descricao = ?, e_obrigatorio =?  WHERE nome_materia = ?'
         try:
             novo = (novo_nome,nova_desc,novo_obrigatoria)
             self.cursor.execute(sql, novo)
@@ -144,12 +144,14 @@ class Professor:
         except sqlite3.IntegrityError as e:
             print(f'Erro ao cadastrar {e}')
             return None
-    def busca(self, nome):
-        sql = "SELECT id_professor, nome_professor,data_nascimento, materia_de_ensino FROM professores WHERE nome_professor = ?"
-        self.cursor.execute(sql, (nome,))
-        resultado = self.cursor.fetchone()
-
-        return resultado
+    def busca(self):
+        sql = "SELECT id_professor, nome_professor FROM professores"
+        try:
+            self.cursor.execute(sql)
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Erro: {e}")
+            return []
 
     def atualizar(self, id_prof, novo_nome, nova_data_nascimento, nova_materia):
         sql = """
