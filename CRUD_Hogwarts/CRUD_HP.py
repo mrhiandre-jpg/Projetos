@@ -15,15 +15,20 @@ def iniciar_banco():
             id_professor INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_professor TEXT NOT NULL,
             data_nascimento TEXT NOT NULL,
-            materia_de_ensino TEXT 
+            materia_de_ensino INTEGER NOT NULL,
+            FOREIGN KEY (materia_de_ensino) REFERENCES materia(id_materia)
         );
         """,
         """
         CREATE TABLE IF NOT EXISTS casas (
             id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_casa TEXT NOT NULL,
-            id_coordenador INTEGER NOT NULL UNIQUE REFERENCES professores(nome_professor)
-        );
+            descricao TEXT,
+            cores TEXT,
+            id_coordenador INTEGER NOT NULL,
+            pontuacao INTEGER DEFAULT 0,
+            FOREIGN KEY (id_coordenador) REFERENCES professores(id_professor)
+            );
         """,
         """
         CREATE TABLE IF NOT EXISTS anos_escolares (
@@ -76,7 +81,7 @@ class Materia:
         self.conn = conexao_banco
 
     def criar_materia(self, nome, descricao='', obrigatorio=False):
-        sql = 'INSERT INTO materia(nome_materia, descricao, e_obrigatori) VALUES (?, ?, ?)'
+        sql = 'INSERT INTO materia(nome_materia, descricao, e_obrigatorio) VALUES (?, ?, ?)'
         try:
             self.cursor.execute(sql, (nome, descricao, obrigatorio))
             self.conn.commit()
@@ -86,7 +91,7 @@ class Materia:
             print(f"Erro: {e}")
             return False
     def listar_materia(self, nome_materia):
-        sql = 'SELECT id_materia, nome_materia, descricao, e_obrigatori FROM materia WHERE nome_materia = ? COLLATE NOCASE'
+        sql = 'SELECT id_materia, nome_materia, descricao, e_obrigatorio FROM materia WHERE nome_materia = ? COLLATE NOCASE'
         try:
             self.cursor.execute(sql,(nome_materia,))
             return self.cursor.fetchone()
@@ -94,22 +99,31 @@ class Materia:
         except Exception as e:
             print(f"Erro ao buscar matéria: {e}")
             return None
-    def atualizar(self,id_materia, novo_nome, nova_desc, novo_obrigatoria):
-        sql = 'UPDATE materia SET nome_materia = ?, descricao = ?, e_obrigatorio =?  WHERE nome_materia = ?'
+    def listar_todas(self):
+        sql = 'SELECT id_materia, nome_materia FROM materia'
         try:
-            novo = (novo_nome,nova_desc,novo_obrigatoria)
-            self.cursor.execute(sql, novo)
+            self.cursor.execute(sql, )
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f'Erro ao buscar materia: {e}')
+            return []
+    def atualizar(self,id_materia, novo_nome, nova_desc, novo_obrigatoria):
+        sql = 'UPDATE materia SET nome_materia = ?, descricao = ?, e_obrigatorio = ?  WHERE id_materia = ?'
+        try:
+            self.cursor.execute(sql, (novo_nome, nova_desc, novo_obrigatoria, id_materia))
             self.conn.commit()
             if self.cursor.rowcount > 0:
                 print('Atualizado com sucesso!')
+                return True
             else:
                 print('Materia não encontrada')
+                return False
         except sqlite3.IntegrityError as e:
             print(f'Erro ao atualizar: {e}')
             return False
     def deletar_materia(self, nome_materia):
         try:
-            sql_verificar = 'SELECT e_obrigatoria FROM materia WHERE nome_materia = ?'
+            sql_verificar = 'SELECT e_obrigatorio FROM materia WHERE nome_materia = ?'
             self.cursor.execute(sql_verificar, (nome_materia,))
             resultado = self.cursor.fetchone()
             if not resultado:
@@ -134,24 +148,38 @@ class Professor:
         self.cursor = cursor_banco
         self.conn = conexao_banco
 
-    def contratar(self, nome, data_de_nascimento, materia_de_ensino):
-        sql = 'INSERT INTO professores (nome_professor, data_nascimento,materia_de_ensino) VALUES (?, ?,?)'
+    def contratar(self, nome, data_de_nascimento, id_materia):
+        # Aqui salvamos o ID (número)
+        sql = 'INSERT INTO professores (nome_professor, data_nascimento, materia_de_ensino) VALUES (?, ?, ?)'
         try:
-            self.cursor.execute(sql, (nome, data_de_nascimento, materia_de_ensino))
+            self.cursor.execute(sql, (nome, data_de_nascimento, id_materia))
             self.conn.commit()
             print(f'Professor {nome} contratado com sucesso!')
             return self.cursor.lastrowid
         except sqlite3.IntegrityError as e:
             print(f'Erro ao cadastrar {e}')
             return None
-    def busca(self):
-        sql = "SELECT id_professor, nome_professor FROM professores"
-        try:
+    def busca(self, nome_filtro=None):
+        # --- A MÁGICA DO JOIN ---
+        # Pegamos os dados do Professor (p) e o Nome da Matéria (m)
+        sql = """
+              SELECT p.id_professor, 
+                     p.nome_professor, 
+                     p.data_nascimento, 
+                     m.nome_materia
+              FROM professores p
+              LEFT JOIN materia m ON p.materia_de_ensino = m.id_materia 
+              """
+
+        if nome_filtro:
+            # Se passou um nome, filtra (Usado no Modificar/Demitir)
+            sql += " WHERE p.nome_professor LIKE ?"
+            self.cursor.execute(sql, (f'%{nome_filtro}%',))
+            return self.cursor.fetchone()  # Retorna 1 tupla com 4 itens
+        else:
+            # Se não passou nome, traz todos (Usado no ComboBox de Casas)
             self.cursor.execute(sql)
             return self.cursor.fetchall()
-        except Exception as e:
-            print(f"Erro: {e}")
-            return []
 
     def atualizar(self, id_prof, novo_nome, nova_data_nascimento, nova_materia):
         sql = """
@@ -202,17 +230,36 @@ class Casas:
     def criar_casa(self,nome_casa, id_coordenador):
         sql = 'INSERT INTO casas (nome_casa, id_coordenador) VALUES (?, ?)'
         try:
-            self.cursor.execute(sql, (nome_casa, id_coordenador))
+            self.cursor.execute(sql, (nome_casa, id_coordenador,))
             self.conn.commit()
             print(f'Casa {nome_casa} criada com sucesso!')
             return self.cursor.lastrowid
         except sqlite3.IntegrityError:
             print(f'Erro: O Professor ID {id_coordenador} já coordena outra casa! Escolha outro professor!')
             return None
+    def pontuacao(self):
+        sql = 'SELECT id_casa, nome_casa, pontuacao FROM casas ORDER BY pontuacao DESC'
+        try:
+            self.cursor.execute(sql, )
+            self.conn.commit()
+            return self.cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f'Erro: {e}')
+            return []
+    def atualizar_pontos(self, id_casa, quantidade_pontos):
+        sql = 'UPDATE casas SET pontos = pontos + ? WHERE id_casa = ?'
+        try:
+            self.cursor.execute(sql, (quantidade_pontos, id_casa))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f'Erro: {e}')
+            return False
+
     def trocar_coord(self, id_casa, novo_id_coordenador):
         sql = 'UPDATE casas SET id_coordenador = ? WHERE id_casa = ?'
         try:
-            self.cursor.execute(sql, (novo_id_coordenador, id_casa))
+            self.cursor.execute(sql, (novo_id_coordenador, id_casa,))
             self.conn.commit()
             if self.cursor.rowcount > 0:
                 print(f'O coordenador da casa foi atualizado para {novo_id_coordenador} com sucesso!')
@@ -223,6 +270,46 @@ class Casas:
 
         except sqlite3.Error as e:
             print(f'Erro: {e}')
+    def busca(self):
+        sql = "SELECT id_casa, nome_casa FROM casas"
+        try:
+            self.cursor.execute(sql,)
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Erro: {e}")
+            return []
+    def atualizar(self, id_casa, nome_casa, descricao, nome_professor):
+        sql = 'UPDATE casas SET nome_casa = ?, descricao = ?, id_coordenador WHERE id_casa'
+        try:
+            self.cursor.execute(sql, (nome_casa, descricao, nome_professor,))
+            self.conn.commit()
+            if self.cursor.rowcount > 0:
+                print('Atualizado com sucesso!')
+                return True
+            else:
+                print('Casa Atualizado com sucesso!')
+                return False
+        except sqlite3.IntegrityError as e:
+            print(f'Erro ao atualizar: {e}')
+            return False
+    def excluir(self, id_casa, nome_casa):
+        sql = 'DELETE FROM casas WHERE nome_casa = ?'
+        try:
+            self.cursor.execute(sql, (nome_casa,))
+            self.conn.commit()
+            if self.cursor.rowcount > 0:
+                print(f'Casa excluida com sucesso!')
+                return True
+            else:
+                print('Casa não encontrada!')
+                return False
+        except sqlite3.Error as e:
+            print(f'Erro ao deletar: {e}')
+            return False
+
+
+
+
 class Ano:
     def __init__(self, cursor_banco, conexao_banco):
         self.cursor = cursor_banco
