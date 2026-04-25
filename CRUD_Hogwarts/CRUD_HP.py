@@ -24,9 +24,7 @@ def iniciar_banco():
             id_casa INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_casa TEXT NOT NULL,
             descricao TEXT,
-            cores TEXT,
             id_coordenador INTEGER NOT NULL,
-            pontuacao INTEGER DEFAULT 0,
             FOREIGN KEY (id_coordenador) REFERENCES professores(id_professor)
             );
         """,
@@ -74,7 +72,6 @@ def iniciar_banco():
     print("--- Tabelas verificadas/criadas com sucesso ---")
 
     return conn, cursor
-
 class Materia:
     def __init__(self, cursor_banco, conexao_banco):
         self.cursor = cursor_banco
@@ -141,8 +138,6 @@ class Materia:
                 return False, f'Erro: Materia {nome_materia} não pode ser apagada pois eh obrigatoria'
         except Exception as e:
             return False, f'Erro: {e}'
-
-
 class Professor:
     def __init__(self, cursor_banco, conexao_banco):
         self.cursor = cursor_banco
@@ -270,16 +265,17 @@ class Casas:
 
         except sqlite3.Error as e:
             print(f'Erro: {e}')
-    def busca(self):
-        sql = "SELECT id_casa, nome_casa FROM casas"
+    def busca(self, nome_casa):
+        sql = "SELECT id_casa, nome_casa, descricao, id_coordenador FROM casas WHERE nome_casa = ?"
         try:
-            self.cursor.execute(sql,)
-            return self.cursor.fetchall()
+            self.cursor.execute(sql,(nome_casa,))
+            return self.cursor.fetchone()
+
         except Exception as e:
             print(f"Erro: {e}")
-            return []
+            return None
     def atualizar(self, id_casa, nome_casa, descricao, nome_professor):
-        sql = 'UPDATE casas SET nome_casa = ?, descricao = ?, id_coordenador WHERE id_casa'
+        sql = 'UPDATE casas SET nome_casa = ?, descricao = ?, id_coordenador = ? WHERE id_casa'
         try:
             self.cursor.execute(sql, (nome_casa, descricao, nome_professor,))
             self.conn.commit()
