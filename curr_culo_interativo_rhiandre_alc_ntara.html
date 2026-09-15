@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhiandre Alcântara - Currículo Interativo & Portfolio Back-End</title>
+
+    <!-- Chosen Palette: Warm Professional Slate & Emerald Tech (#f8fafc background, #0f172a primary, #059669 emerald accent) -->
+    <!-- Application Structure Plan: Designed as a dynamic Developer Portfolio & Interactive Curriculum Dashboard. 
+         Sections: 
+         1. Hero / Contact Header with instant PDF Print CTA.
+         2. Executive Summary & Key Highlights.
+         3. Competencies Matrix & Dynamic Skill Distribution Chart (Chart.js) with interactive filters.
+         4. Interactive Project Explorer (PetCare Tracker REST API Playground simulator to prove FastAPI/Pydantic mastery).
+         5. Professional Experience & Transferable Skills Timeline.
+         6. Academic Background.
+         This architecture allows recruiters to interactively inspect skills, simulate API outputs, or print a clean CV layout. -->
+    <!-- Visualization & Content Choices: 
+         1. Tech Stack Mastery -> Chart.js Dynamic Horizontal Bar Chart -> Visualizes fluency in Python, FastAPI, SQL, C/C++ without UI clutter.
+         2. PetCare Tracker API -> Interactive Endpoint Visualizer (JS Tabbed inspector) -> Demonstrates actual Pydantic schemas and REST routes dynamically.
+         3. Work History -> Structured Cards with expandable transferable skill badges.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. Canvas and HTML/CSS controls used exclusively. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 320px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 320px;
+            }
+        }
+        
+        /* Printable Stylesheet Customization */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-size: 11pt;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+            .shadow-lg, .shadow-md, .shadow-sm {
+                box-shadow: none !important;
+            }
+            .border {
+                border-color: #e2e8f0 !important;
+            }
+            .bg-slate-900, .bg-slate-800, .bg-emerald-700 {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white min-h-screen">
+
+    <!-- Top Action Bar (Interactive Controls) -->
+    <div class="no-print bg-slate-900 text-slate-200 py-2.5 px-4 sticky top-0 z-50 shadow-md border-b border-slate-800">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 text-xs sm:text-sm">
+            <div class="flex items-center space-x-2 font-medium">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Painel Interativo de Perfil Profesional</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-1.5 px-3.5 rounded-md transition shadow flex items-center gap-1.5 cursor-pointer">
+                    <span>🖨️</span> Imprimir / Salvar PDF
+                </button>
+                <a href="https://github.com/mrhiandre-jpg/Projetos" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium py-1.5 px-3 rounded-md transition flex items-center gap-1">
+                    <span>🌐</span> GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+
+        <!-- Header / Hero Section -->
+        <header class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
+                        ⚡ Desenvolvedor Back-End Python & APIs
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                        Rhiandre Alcântara Vieira Marques
+                    </h1>
+                    <p class="text-lg text-slate-600 font-medium mt-1">
+                        Estudante de Ciência da Computação | Foco em Python, FastAPI e Engenharia de Dados
+                    </p>
+                </div>
+
+                <!-- Contact Pills -->
+                <div class="flex flex-col gap-2 text-sm w-full md:w-auto">
+                    <div class="flex items-center gap-2 text-slate-700 bg-slate-100/80 px-3 py-2 rounded-lg">
+                        <span class="text-base">📍</span>
+                        <span class="font-medium">Brasília, DF - Brasil</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-700 bg-slate-100/80 px-3 py-2 rounded-lg">
+                        <span class="text-base">📞</span>
+                        <a href="tel:61998470486" class="font-medium hover:text-emerald-600 transition">(61) 99847-0486</a>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-700 bg-slate-100/80 px-3 py-2 rounded-lg">
+                        <span class="text-base">✉️</span>
+                        <a href="mailto:mrhiandre@gmail.com" class="font-medium hover:text-emerald-600 transition">mrhiandre@gmail.com</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Objective Block -->
+            <div class="mt-6 pt-6 border-t border-slate-100">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Objetivo Profissional</h2>
+                <p class="text-slate-700 leading-relaxed text-base">
+                    Estudante de Ciência da Computação buscando oportunidade como <strong class="text-slate-900 font-semibold">Estagiário</strong> ou <strong class="text-slate-900 font-semibold">Desenvolvedor Júnior em Back-End Python</strong>. Focado no desenvolvimento de soluções eficientes, APIs RESTful e integração com bancos de dados relacionais. Unindo resiliência, boas práticas de código e facilidade para rápida adaptação a novas arquiteturas.
+                </p>
+            </div>
+        </header>
+
+        <!-- Metric Cards -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                <span class="text-xs font-bold text-slate-400 uppercase">Graduação</span>
+                <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1">Ciência da Comp.</p>
+                <span class="text-xs text-emerald-600 font-semibold">Estácio (Noturno)</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                <span class="text-xs font-bold text-slate-400 uppercase">Stack Principal</span>
+                <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1">Python & SQL</p>
+                <span class="text-xs text-emerald-600 font-semibold">FastAPI + PostgreSQL</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                <span class="text-xs font-bold text-slate-400 uppercase">Projeto Chave</span>
+                <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1">PetCare REST</p>
+                <span class="text-xs text-slate-500">FastAPI & Pydantic</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                <span class="text-xs font-bold text-slate-400 uppercase">Diferencial</span>
+                <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1">Resiliência</p>
+                <span class="text-xs text-slate-500">Trabalho Sob Pressão</span>
+            </div>
+        </section>
+
+        <!-- Dynamic Technical Competencies & Skill Matrix -->
+        <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <span>⚙️</span> Competências Técnicas & Habilidades
+                </h2>
+                <p class="text-slate-600 text-sm mt-1">
+                    Esta seção apresenta o conjunto de tecnologias, linguagens e conceitos aplicados no desenvolvimento back-end. Utilize os filtros para explorar cada categoria ou analise o gráfico comparativo de proficiência.
+                </p>
+            </div>
+
+            <!-- Skill Filters (Interactive) -->
+            <div class="no-print flex flex-wrap gap-2 pt-2">
+                <button onclick="filterSkills('all')" id="btn-all" class="skill-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white shadow-sm transition">
+                    Todas as Habilidades
+                </button>
+                <button onclick="filterSkills('backend')" id="btn-backend" class="skill-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                    Back-End & Frameworks
+                </button>
+                <button onclick="filterSkills('database')" id="btn-database" class="skill-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                    Bancos de Dados
+                </button>
+                <button onclick="filterSkills('concepts')" id="btn-concepts" class="skill-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                    Conceitos & Big Data
+                </button>
+                <button onclick="filterSkills('tools')" id="btn-tools" class="skill-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                    Ferramentas
+                </button>
+            </div>
+
+            <!-- Skills List Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm" id="skills-grid">
+                <!-- Card 1: Languages -->
+                <div class="skill-card bg-slate-50 p-4 rounded-xl border border-slate-200" data-category="backend">
+                    <div class="font-semibold text-slate-900 mb-2 flex items-center justify-between">
+                        <span>Linguagens de Programação</span>
+                        <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Core</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-800">Python</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">C</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">C++</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">JavaScript</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">Java</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">PHP</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Frameworks & APIs -->
+                <div class="skill-card bg-slate-50 p-4 rounded-xl border border-slate-200" data-category="backend">
+                    <div class="font-semibold text-slate-900 mb-2 flex items-center justify-between">
+                        <span>Frameworks & Web Back-End</span>
+                        <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Em Foco</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-emerald-700 font-bold">FastAPI</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-emerald-700 font-bold">Pydantic</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-800">Arquitetura RESTful</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">Validação de Dados</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Databases -->
+                <div class="skill-card bg-slate-50 p-4 rounded-xl border border-slate-200" data-category="database">
+                    <div class="font-semibold text-slate-900 mb-2 flex items-center justify-between">
+                        <span>Bancos de Dados Relacionais</span>
+                        <span class="text-xs bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">Prática</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-800">PostgreSQL</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-800">MySQL</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">Modelagem Relacional</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">Consultas & Manutenção</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Concepts & Big Data -->
+                <div class="skill-card bg-slate-50 p-4 rounded-xl border border-slate-200" data-category="concepts">
+                    <div class="font-semibold text-slate-900 mb-2 flex items-center justify-between">
+                        <span>Conceitos de TI & Big Data</span>
+                        <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">Acadêmico</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-800">POO (Orientação a Objetos)</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-800">Estruturas de Dados</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">PySpark (Noções)</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-medium text-slate-700">Hadoop (Noções)</span>
+                    </div>
+                </div>
+
+                <!-- Card 5: Tools & Web -->
+                <div class="skill-card bg-slate-50 p-4 rounded-xl border border-slate-200 md:col-span-2" data-category="tools">
+                    <div class="font-semibold text-slate-900 mb-2 flex items-center justify-between">
+                        <span>Ferramentas & Soft Skills</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase block mb-1">Ferramentas de Dev</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-700">Git</span>
+                                <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-700">VS Code</span>
+                                <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-700">PyCharm</span>
+                                <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-700">HTML5 / CSS3</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase block mb-1">Habilidades Comportamentais</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded font-medium">Resolução Rápida de Problemas</span>
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded font-medium">Adaptabilidade</span>
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded font-medium">Trabalho Sob Pressão</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Canvas Wrapper -->
+            <div class="pt-4 border-t border-slate-100">
+                <h3 class="text-sm font-bold text-slate-700 mb-3 text-center sm:text-left">
+                    📊 Nível de Prática e Foco do Conhecimento Técnico
+                </h3>
+                <div class="chart-container">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Project Showcase Section -->
+        <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <span>🚀</span> Projeto em Destaque: PetCare Tracker REST API
+                    </h2>
+                    <p class="text-slate-600 text-sm mt-1">
+                        Demonstração prática da aplicação de arquitetura REST, rotas modernas e validação estrita de dados com FastAPI e Pydantic.
+                    </p>
+                </div>
+                <span class="bg-emerald-100 text-emerald-800 font-bold text-xs px-3 py-1 rounded-full border border-emerald-200">
+                    API RESTful Em Produção Local
+                </span>
+            </div>
+
+            <!-- Project Details Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Description -->
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-slate-900 text-sm mb-2">Resumo da Solução</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Desenvolvimento de uma API completa para gestão de clínicas veterinárias. O sistema gerencia cadastros de pets, histórico de consultas, esquemas vacinais e agendamentos com validações rigorosas em cada entrada de dados.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                        <h3 class="font-bold text-slate-900 text-sm">Tecnologias Utilizadas</h3>
+                        <div class="flex flex-wrap gap-1.5 text-xs">
+                            <span class="bg-slate-900 text-white font-mono px-2 py-0.5 rounded">Python 3.11</span>
+                            <span class="bg-emerald-700 text-white font-mono px-2 py-0.5 rounded">FastAPI</span>
+                            <span class="bg-teal-700 text-white font-mono px-2 py-0.5 rounded">Pydantic</span>
+                            <span class="bg-slate-700 text-white font-mono px-2 py-0.5 rounded">Uvicorn</span>
+                        </div>
+                    </div>
+
+                    <a href="https://github.com/mrhiandre-jpg/Projetos" target="_blank" rel="noopener" class="no-print inline-flex items-center justify-center gap-2 w-full bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs py-2.5 px-4 rounded-xl transition shadow">
+                        <span>🐙</span> Ver Repositório Completo no GitHub
+                    </a>
+                </div>
+
+                <!-- API Endpoint Simulator (Interactive Feature) -->
+                <div class="lg:col-span-2 bg-slate-900 text-slate-200 p-5 rounded-xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+                            <span class="text-xs font-mono text-emerald-400 font-bold flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Simulator Endpoint Inspector
+                            </span>
+                            <span class="text-xs text-slate-400 font-mono">FastAPI Swagger Mock</span>
+                        </div>
+
+                        <!-- Endpoint Selector Tabs -->
+                        <div class="no-print flex flex-wrap gap-2 my-3">
+                            <button onclick="setApiEndpoint('pets')" id="tab-pets" class="api-tab text-xs font-mono px-3 py-1.5 rounded bg-emerald-600 text-white font-semibold transition">
+                                GET /pets
+                            </button>
+                            <button onclick="setApiEndpoint('create_pet')" id="tab-create_pet" class="api-tab text-xs font-mono px-3 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                                POST /pets
+                            </button>
+                            <button onclick="setApiEndpoint('vaccines')" id="tab-vaccines" class="api-tab text-xs font-mono px-3 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                                GET /vaccines/history
+                            </button>
+                            <button onclick="setApiEndpoint('appointment')" id="tab-appointment" class="api-tab text-xs font-mono px-3 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                                POST /appointments
+                            </button>
+                        </div>
+
+                        <!-- Payload & Response Display -->
+                        <div class="space-y-2 mt-2">
+                            <div class="flex justify-between text-xs font-mono text-slate-400">
+                                <span>Status Code: <strong class="text-emerald-400" id="api-status">200 OK</strong></span>
+                                <span id="api-route" class="text-slate-300">/api/v1/pets</span>
+                            </div>
+                            <pre id="api-response" class="bg-slate-950 p-3.5 rounded-lg text-xs font-mono text-emerald-300 overflow-x-auto border border-slate-800 max-h-48">
+{
+  "status": "success",
+  "data": [
+    { "id": 1, "name": "Thor", "species": "Canine", "breed": "Golden Retriever", "age_years": 3 },
+    { "id": 2, "name": "Luna", "species": "Feline", "breed": "Siamese", "age_years": 2 }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <p class="text-[11px] text-slate-400 mt-3 font-sans italic">
+                        💡 Este simulador reflete o formato do schema de validação Pydantic implementado na arquitetura da API.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Career Experience Section -->
+        <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <span>💼</span> Experiência Profissional
+                </h2>
+                <p class="text-slate-600 text-sm mt-1">
+                    Histórico de atuação combinando suporte técnico em TI com responsabilidade operacional sob alta demanda.
+                </p>
+            </div>
+
+            <div class="relative border-l-2 border-slate-200 pl-4 sm:pl-6 space-y-8 ml-2">
+
+                <!-- Experience 1: DTA Informática -->
+                <div class="relative group">
+                    <span class="absolute -left-[25px] sm:-left-[33px] top-1.5 w-4 h-4 rounded-full bg-emerald-600 border-4 border-white shadow-sm"></span>
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <h3 class="text-base font-bold text-slate-900">Estagiário em TI (Desenvolvimento)</h3>
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full w-max">
+                                Fev/2020 – Out/2020
+                            </span>
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600">DTA Informática • Brasília, DF</div>
+                        <ul class="text-xs text-slate-700 space-y-1.5 list-disc pl-4 pt-1">
+                            <li>Desenvolvimento, manutenção e testes de validação de módulos internos para sistema financeiro utilizando <strong>Python</strong>.</li>
+                            <li>Criação de tabelas, inserção de registros, elaboração de consultas e extração de dados em banco de dados relacional <strong>PostgreSQL</strong>.</li>
+                            <li>Realização de rotinas de suporte e ajustes técnicos no Back-End (Python) e apoio na interface web (HTML5/CSS3).</li>
+                        </ul>
+                        <div class="pt-2 flex flex-wrap gap-1 text-[11px]">
+                            <span class="bg-white border border-slate-200 px-2 py-0.5 rounded font-mono text-slate-700">Python</span>
+                            <span class="bg-white border border-slate-200 px-2 py-0.5 rounded font-mono text-slate-700">PostgreSQL</span>
+                            <span class="bg-white border border-slate-200 px-2 py-0.5 rounded font-mono text-slate-700">Sistemas Financeiros</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Experience 2: Rei do Camarão -->
+                <div class="relative group">
+                    <span class="absolute -left-[25px] sm:-left-[33px] top-1.5 w-4 h-4 rounded-full bg-slate-400 border-4 border-white shadow-sm"></span>
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <h3 class="text-base font-bold text-slate-900">Auxiliar de Operações e Controles Internos</h3>
+                            <span class="text-xs font-semibold text-slate-600 bg-slate-200 px-2.5 py-0.5 rounded-full w-max">
+                                Jul/2023 – Atual
+                            </span>
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600">Rei do Camarão • Brasília, DF</div>
+                        <ul class="text-xs text-slate-700 space-y-1.5 list-disc pl-4 pt-1">
+                            <li>Atuação estratégica em ambiente operacional de alta pressão e rápida tomada de decisão.</li>
+                            <li>Gestão e execução de múltiplas rotinas simultâneas, incluindo conciliação de fluxo de caixa e movimentações financeiras.</li>
+                            <li>Controle rigoroso de entradas e saídas no gerenciamento de estoque interno.</li>
+                        </ul>
+                        <div class="pt-2 flex flex-wrap gap-1 text-[11px]">
+                            <span class="bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-600">Resolução Sob Pressão</span>
+                            <span class="bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-600">Gestão de Estoque</span>
+                            <span class="bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-600">Organização Financeira</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Experience 3: KSM Múltiplos Negócios -->
+                <div class="relative group">
+                    <span class="absolute -left-[25px] sm:-left-[33px] top-1.5 w-4 h-4 rounded-full bg-slate-300 border-4 border-white shadow-sm"></span>
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <h3 class="text-base font-bold text-slate-900">Atendente de Call Center e Operações</h3>
+                            <span class="text-xs font-semibold text-slate-500 bg-slate-200 px-2.5 py-0.5 rounded-full w-max">
+                                Mar/2021 – Jun/2021
+                            </span>
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600">KSM Múltiplos Negócios • Brasília, DF</div>
+                        <ul class="text-xs text-slate-700 space-y-1.5 list-disc pl-4 pt-1">
+                            <li>Atendimento direto a clientes e registro de chamados em sistema corporativo, obtendo taxa de conversão de 25%.</li>
+                            <li>Gestão e configuração operacional de anúncios no Facebook Marketplace focado no atingimento de metas.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Academic Education -->
+        <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <span>🎓</span> Formação Acadêmica
+                </h2>
+                <p class="text-slate-600 text-sm mt-1">
+                    Base sólida em ciência da computação e fundamentos de engenharia de software.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- University -->
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase">
+                            Em Andamento
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900 mt-2">Bacharelado em Ciência da Computação</h3>
+                        <p class="text-sm font-medium text-slate-700 mt-0.5">Universidade Estácio</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200 text-xs text-slate-500 flex justify-between">
+                        <span>Período: Noturno</span>
+                        <span>Previsão de Conclusão: 2027</span>
+                    </div>
+                </div>
+
+                <!-- High School -->
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-600 bg-slate-200 px-2.5 py-0.5 rounded-full uppercase">
+                            Concluído
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900 mt-2">Ensino Médio</h3>
+                        <p class="text-sm font-medium text-slate-700 mt-0.5">Colégio Projeção</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200 text-xs text-slate-500 flex justify-between">
+                        <span>Brasília, DF</span>
+                        <span>Concluído em: 2018</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-xs text-slate-500 py-4 border-t border-slate-200">
+            <p>© 2026 Rhiandre Alcântara Vieira Marques • Currículo & Portfolio Interativo Back-End Python</p>
+        </footer>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Skill Dynamic Filter Logic ---
+        function filterSkills(category) {
+            const cards = document.querySelectorAll('.skill-card');
+            const buttons = document.querySelectorAll('.skill-filter-btn');
+
+            // Reset button styling
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-slate-900', 'text-white', 'font-bold');
+                btn.classList.add('bg-slate-100', 'text-slate-700', 'font-medium');
+            });
+
+            // Highlight selected button
+            const activeBtn = document.getElementById(`btn-${category}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-100', 'text-slate-700', 'font-medium');
+                activeBtn.classList.add('bg-slate-900', 'text-white', 'font-bold');
+            }
+
+            // Filter cards
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // --- 2. Interactive PetCare API Mock Inspector ---
+        const apiEndpoints = {
+            'pets': {
+                route: '/api/v1/pets',
+                status: '200 OK',
+                response: `{\n  "status": "success",\n  "total": 2,\n  "data": [\n    {\n      "id": 1,\n      "name": "Thor",\n      "species": "Canino",\n      "breed": "Golden Retriever",\n      "age_years": 3\n    },\n    {\n      "id": 2,\n      "name": "Luna",\n      "species": "Felino",\n      "breed": "Siamês",\n      "age_years": 2\n    }\n  ]\n}`
+            },
+            'create_pet': {
+                route: '/api/v1/pets (POST)',
+                status: '201 Created',
+                response: `{\n  "message": "Pet cadastrado com sucesso",\n  "data": {\n    "id": 3,\n    "name": "Bob",\n    "species": "Canino",\n    "breed": "Poodle",\n    "age_years": 1,\n    "created_at": "2026-09-15T12:00:00Z"\n  }\n}`
+            },
+            'vaccines': {
+                route: '/api/v1/vaccines/history?pet_id=1',
+                status: '200 OK',
+                response: `{\n  "pet_id": 1,\n  "pet_name": "Thor",\n  "vaccines": [\n    { "name": "V10 Importada", "applied_date": "2026-01-10", "next_due": "2027-01-10" },\n    { "name": "Antirrábica", "applied_date": "2026-02-15", "next_due": "2027-02-15" }\n  ]\n}`
+            },
+            'appointment': {
+                route: '/api/v1/appointments (POST)',
+                status: '201 Created',
+                response: `{\n  "appointment_id": 104,\n  "pet_id": 1,\n  "veterinarian": "Dra. Juliana Marques",\n  "date_time": "2026-09-20T14:30:00Z",\n  "status": "CONFIRMED"\n}`
+            }
+        };
+
+        function setApiEndpoint(key) {
+            const endpoint = apiEndpoints[key];
+            if (!endpoint) return;
+
+            document.getElementById('api-route').textContent = endpoint.route;
+            document.getElementById('api-status').textContent = endpoint.status;
+            document.getElementById('api-response').textContent = endpoint.response;
+
+            // Update tab button styles
+            const tabs = document.querySelectorAll('.api-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('bg-emerald-600', 'text-white', 'font-semibold');
+                tab.classList.add('bg-slate-800', 'text-slate-300');
+            });
+
+            const selectedTab = document.getElementById(`tab-${key}`);
+            if (selectedTab) {
+                selectedTab.classList.remove('bg-slate-800', 'text-slate-300');
+                selectedTab.classList.add('bg-emerald-600', 'text-white', 'font-semibold');
+            }
+        }
+
+        // --- 3. Chart.js Skill Visualization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        'Python',
+                        'FastAPI & APIs',
+                        'PostgreSQL / SQL',
+                        'C / C++',
+                        'Git & Versionamento',
+                        'PySpark / Big Data'
+                    ],
+                    datasets: [{
+                        label: 'Nível Prático / Domínio (%)',
+                        data: [85, 80, 75, 65, 75, 45],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.85)',
+                            'rgba(16, 185, 129, 0.75)',
+                            'rgba(37, 99, 235, 0.75)',
+                            'rgba(100, 116, 139, 0.75)',
+                            'rgba(100, 116, 139, 0.75)',
+                            'rgba(168, 85, 247, 0.65)'
+                        ],
+                        borderColor: [
+                            '#059669',
+                            '#059669',
+                            '#2563eb',
+                            '#475569',
+                            '#475569',
+                            '#9333ea'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Proficiência estimada: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: '#f1f5f9'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
