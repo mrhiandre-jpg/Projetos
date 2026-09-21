@@ -1,0 +1,417 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Optional
+
+
+#criando a aplicação FastAPI
+app = FastAPI(title="PetCare", description="API para gerenciamento de pets", version="1.0.0")
+
+@app.get("/", status_code=200)
+def rota_inicial():
+    return {
+        "mensagem": "Bem-vindo à API do PetCare Tracker! Acesse /docs para ver a documentação."
+    }
+
+
+#utilizamos lista para simular uma tabela de dados de usuários
+tabela_de_usuarios = {}
+#Criando o modelo de dados para o usuário
+class Usuarios(BaseModel):
+    nome: str
+    email: str
+    senha: str
+#fazemos a rota para criar um usuário
+@app.post("/usuarios", status_code=201)
+def criar_usuario(usuario: Usuarios):
+    novo_usuario = usuario.model_dump()
+    novo_usuario["id"] = len(tabela_de_usuarios) + 1 #gerando o Id do usuário de uma forma simples
+
+
+    #salvando no banco de dados (simulado aqui com uma lista)
+    tabela_de_usuarios[novo_usuario["id"]] = novo_usuario
+
+    #retorna o usuário criado
+    return {
+        "mensagem": "Usuário criado com sucesso",
+        "usuario": {
+            "id": novo_usuario["id"],
+            "nome": novo_usuario["nome"],
+            "email": novo_usuario["email"]
+        }
+    }
+@app.get("/usuarios", status_code=200)
+def Listar_usuarios():
+    #retorna a lista de usuários cadastrados
+    return {
+        "messagem": "lista de usuários cadastrados",
+        "usuariaos": tabela_de_usuarios
+    }
+
+@app.put("/usuarios/{usuario_id}", status_code=200)
+def atualizar_usuario(usuario_id: int, usuario: Usuarios):
+    #verifica se o usuário existe na tabela
+    if usuario_id in tabela_de_usuarios:
+
+        #Transforma o objeto do usuário em um dicionário
+        novo_usuario = usuario.model_dump()
+        novo_usuario["id"] = usuario_id
+       
+        #Substiuindo o usuário antigo pelo novo
+        tabela_de_usuarios[usuario_id] = novo_usuario
+
+        #retorna o usuário atualizado
+        return {
+            "mensagem": "Usuário atualizado com sucesso",
+            "usuario": novo_usuario
+        }
+    return {
+        "mensagem": "Usuário não encontrado"
+    }
+
+
+@app.delete("/usuarios/{usuario_id}", status_code=200)
+def deletar_usuario(usuario_id: int):
+    #Verifica se o usuário existe na tabela
+    if usuario_id in tabela_de_usuarios:
+        #Deleta o usuário da tabela
+        del tabela_de_usuarios[usuario_id]
+
+        return {
+            "mensagem": "Usuário deletado com sucesso"
+        }
+    return {
+        "mensagem": "Usuário não encontrado"
+    }
+
+#Estoque
+
+class Racao(BaseModel):
+    marca: str #Nome da marca da ração
+    tipo: str #se e seco, úmido, natural, etc
+    para: str #para qual tipo de animal é a ração
+    quantidade: float #quantidade de ração em estoque
+
+
+class Higiene(BaseModel):
+    nome: str #Nome do produto de higiene
+    tipo: str #se é shampoo, sabonete, etc
+    para: str #para qual tipo de animal é o produto
+    quantidade: float #quantidade do produto em estoque
+
+class Estoque(BaseModel):
+    racao: Optional[list[Racao]] = [] #lista de rações em estoque
+    higiene: Optional[list[Higiene]] = [] #lista de produtos de higiene em estoque
+
+@app.put("/usuarios/{usuario_id}/estoque", status_code=200)
+def atualizar_estoque(usuario_id: int, estoque: Estoque):
+    #verifica se o usuário existe na tabela
+    if usuario_id in tabela_de_usuarios:
+        #
+        tabela_de_usuarios[usuario_id]["estoque"] = estoque.model_dump()
+
+        #retorna o estoque atualizado
+        return {
+            "mensagem": "Estoque atualizado com sucesso",
+            "estoque": tabela_de_usuarios[usuario_id]["estoque"]
+        }
+    return {
+        "mensagem": "Usuário não encontrado"
+    }
+
+@app.get("/usuarios/{usuario_id}/estoque", status_code=200)
+def listar_estoque(usuario_id: int):
+    #verifica se o usuário existe na tabela
+    if usuario_id in tabela_de_usuarios:
+
+        estoque_atual = tabela_de_usuarios[usuario_id].get("estoque", {"racao": [], "higiene": []})
+    
+        #retorna o estoque do usuário
+        return {
+            "mensagem": "Estoque do usuário",
+            "estoque": estoque_atual
+        }
+    return {
+        "mensagem": "Usuário não encontrado"
+    }
+
+#parte dos pets
+
+#utilizamos um dicionario para simular uma tabela de dados de pets
+tabela_de_pets = {}
+
+#criando o modelo de dados para o pet
+class Pets(BaseModel):
+    nome: str
+    especie: str
+    idade: Optional[int] = None
+    raca: str
+
+@app.post("/pets", status_code=201)
+def criar_pet(pet: Pets):
+    novo_pet = pet.model_dump()
+    novo_pet["id"] = len(tabela_de_pets) + 1 #Gerando o Id do pet de uma forma simples
+
+    #salndo na "tabela" de pets (simulado aqui com uma lista)
+    tabela_de_pets[novo_pet["id"]] = novo_pet
+
+    #retorna o pet criado
+    return {
+        "mensagem": "Pet criado com sucesso",
+        "pet": {
+            "id": novo_pet["id"],
+            "nome": novo_pet["nome"],
+            "especie": novo_pet["especie"],
+            "idade": novo_pet["idade"],
+            "raca": novo_pet["raca"]
+        }
+    }
+
+@app.get("/pets", status_code=200)
+def listar_pets():
+    #retona a lista dos pets cadastrados
+    return {
+        "mensagem": "lista de pets cadastrados",
+        "pets": tabela_de_pets
+    }
+@app.put("/pets/{pet_id}", status_code=200)
+def atualizar_pet(pet_id: int, pet: Pets):
+    #verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Transforma os dados do pet em um dicionário
+        novo_pet = pet.model_dump()
+        novo_pet["id"] = pet_id
+
+        #Substitui o pet antigo pelo novo
+        tabela_de_pets[pet_id] = novo_pet
+
+        #retorna o pet atualizado
+        return {
+            "mensagem": "Pet atualizado com sucesso",
+            "pet": novo_pet
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
+
+#Vacinas
+
+class Vacina(BaseModel):
+    nome: str
+    data_aplicacao: str
+    proxima_aplicacao: Optional[str] = None
+
+@app.post("/pets/{pet_id}/vacinas", status_code=201)
+def adicionar_vacina(pet_id: int, vacina: Vacina):
+    #verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Transforma os dados da vacina em um dicionário
+        nova_vacina = vacina.model_dump()
+        nova_vacina["id"] = len(tabela_de_pets[pet_id].get("vacinas", [])) + 1 #Gerando o Id da vacina de uma forma simples
+
+        #Adiciona a vacina ao pet
+        if "vacinas" not in tabela_de_pets[pet_id]:
+            tabela_de_pets[pet_id]["vacinas"] = []
+        tabela_de_pets[pet_id]["vacinas"].append(nova_vacina)
+
+        #retorna a vacina adicionada
+        return {
+            "mensagem": "Vacina adicionada com sucesso",
+            "vacina": nova_vacina
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+
+    }
+@app.get("/pets/{pet_id}/vacinas", status_code=200)
+def listar_vacinas(pet_id: int):
+    #verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Capturamos o nome do pet para exibir na resposta
+        nome_pet = tabela_de_pets[pet_id]["nome"]
+
+        #retorna a lista de vacinas do pet
+        return {
+            "mensagem": f"lista de vacinas do pet {nome_pet}",
+            "vacinas": tabela_de_pets[pet_id].get("vacinas", [])
+        }
+    return {
+        "mensagem": "pet não encontrado"
+    }
+
+#consultas
+
+class Consulta(BaseModel):
+    data: str
+    motivo: str
+    veterinario: str
+    descricao: Optional[str] = None
+
+@app.post("/pets/{pet_id}/consultas", status_code=201)
+def adicionar_consulta(pet_id: int, consulta: Consulta):
+    #Verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Transforma os dados da consulta em um dicionário
+        nova_consulta = consulta.model_dump()
+        nova_consulta["id"] = len(tabela_de_pets[pet_id].get("consultas", [])) + 1 #Gerando o Id da consulta
+
+        #Adicionando a consulta ao pet
+        if "consultas" not in tabela_de_pets[pet_id]:
+            tabela_de_pets[pet_id]["consultas"] = []
+        tabela_de_pets[pet_id]["consultas"].append(nova_consulta)
+
+        #retorna a consulta adicionada
+        return {
+            "mensagem": "Consulta adicionada com sucesso",
+            "consulta": nova_consulta
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
+
+@app.get("/pets/{pet_id}/consultas", status_code=200)
+def listar_consultas(pet_id: int):
+    #Verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #1 Capturamos o nome do pet para exibir na resposta
+        nome_pet = tabela_de_pets[pet_id]["nome"]
+
+        #Retorna a lista de consultas do pet
+        return {
+            "mensagem": f"lista de consultas do pet {nome_pet}",
+            "consultas": tabela_de_pets[pet_id].get("consultas", [])
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
+
+#Cuidados
+class Banhos(BaseModel):
+    data: str
+    local: str
+    proxima_data: Optional[str] = None
+
+@app.post("/pets/{pet_id}/banhos", status_code=201)
+def adicionar_banho(pet_id: int, banho: Banhos):
+    #Verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Transforma os dados do banho em um dicionário
+        novo_banho = banho.model_dump()
+        novo_banho["id"] = len(tabela_de_pets[pet_id].get("banhos", [])) + 1
+        #Adicionando o banho ao pet
+        if "banhos" not in tabela_de_pets[pet_id]:
+            tabela_de_pets[pet_id]["banhos"] = []
+        tabela_de_pets[pet_id]["banhos"].append(novo_banho)
+
+        #retorna o banho adicionado
+        return {
+            "mensagem": "Banho adicionado com sucesso",
+            "banho": novo_banho
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
+
+@app.get("/pets/{pet_id}/banhos", status_code=200)
+def listar_banhos(pet_id: int):
+    #Verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Capturamos o nome do pet para exibir na resposta
+        nome_pet = tabela_de_pets[pet_id]["nome"]
+
+        #Retorna a lista de banhos do pet
+        return {
+            "mensagem": f"lista de banhos do pet {nome_pet}",
+            "banhos": tabela_de_pets[pet_id].get("banhos", [])
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
+
+class Alimentacao(BaseModel):
+    data: str
+    tipo: str
+    quantidade: str
+    concluido: bool
+    observacoes: Optional[str] = None
+
+@app.post("/pets/{pet_id}/alimentacao", status_code=201)
+def adicionar_alimentacao(pet_id: int, alimentacao: Alimentacao):
+    #Verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Transforma os dados da alimentação em um dicionário
+        nova_alimentacao = alimentacao.model_dump()
+        nova_alimentacao["id"] = len(tabela_de_pets[pet_id].get("alimentacao", [])) + 1
+
+        #Adicionando a alimentação ao pet
+        if "alimentacao" not in tabela_de_pets[pet_id]:
+            tabela_de_pets[pet_id]["alimentacao"] = []
+        tabela_de_pets[pet_id]["alimentacao"].append(nova_alimentacao)
+
+        #retorna a alimentação adicionada
+        return {
+            "mensagem": "Alimentação adicionada com sucesso",
+            "alimentacao": nova_alimentacao
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
+
+@app.get("/pets/{pet_id}/alimentacao", status_code=200)
+def listar_alimentacao(pet_id: int):
+    #Verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Capturamos o nome do pet para exibir na resposta
+        nome_pet = tabela_de_pets[pet_id]["nome"]
+
+        #Retorna a lista de alimentação do pet
+        return {
+            "mensagem": f"lista de alimentação do pet {nome_pet}",
+            "alimentacao": tabela_de_pets[pet_id].get("alimentacao", [])
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
+
+class Passeio(BaseModel):
+    data: str
+    local: str
+    duracao: str
+    observacoes: Optional[str] = None
+
+@app.post("/pets/{pet_id}/passeios", status_code=201)
+def adicionar_passeio(pet_id: int, passeio: Passeio):
+    #Verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Transforma os dados do passeio em um dicionário
+        novo_passeio = passeio.model_dump()
+        novo_passeio["id"] = len(tabela_de_pets[pet_id].get("passeios", [])) + 1
+
+        #Adicionando o passeio ao pet
+        if "passeios" not in tabela_de_pets[pet_id]:
+            tabela_de_pets[pet_id]["passeios"] = []
+        tabela_de_pets[pet_id]["passeios"].append(novo_passeio)
+
+        #retorna o passeio adicionado
+        return {
+            "mensagem": "Passeio adicionado com sucesso",
+            "passeio": novo_passeio
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
+
+@app.get("/pets/{pet_id}/passeios", status_code=200)
+def listar_passeios(pet_id: int):
+    #Verifica se o pet existe na tabela
+    if pet_id in tabela_de_pets:
+        #Capturamos o nome do pet para exibir na resposta
+        nome_pet = tabela_de_pets[pet_id]["nome"]
+
+        #Retorna a lista de passeios do pet
+        return {
+            "mensagem": f"lista de passeios do pet {nome_pet}",
+            "passeios": tabela_de_pets[pet_id].get("passeios", [])
+        }
+    return {
+        "mensagem": "Pet não encontrado"
+    }
