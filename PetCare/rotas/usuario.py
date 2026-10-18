@@ -1,10 +1,10 @@
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional
 from bd.BD import SessionLocal
-import bd.model as model
-
+from bd import model
+from typing import Optional
 
 #criei para poder modularizar o código e não deixar tudo no main.py
 
@@ -32,12 +32,20 @@ def criar_usuario(usuario: Usuarios, db: Session = Depends(get_db)):
         email=usuario.email,
         senha=usuario.senha
     )
-@router.get("/usuarios", status_code=200)
-def Listar_usuarios():
+
+    db.add(novo_usuario)
+    db.commit()
+    db.refresh(novo_usuario)
+    return
+"""@router.get("/usuarios", status_code=200)
+def Listar_usuarios(db: Session = Depends(get_db)):
     #retorna a lista de usuários cadastrados
+    usuarios_salvos = db.query(model.UsuarioDB).all()
+
     return {
-        "messagem": "lista de usuários cadastrados",
-        "usuarios": tabela_de_usuarios
+        "mensagem": "Lista de Usuários recuperada com sucesso", 
+        "usuarios": usuarios_salvos
+
     }
 
 @router.put("/usuarios/{usuario_id}", status_code=200)
@@ -125,4 +133,4 @@ def listar_estoque(usuario_id: int):
         }
     return {
         "mensagem": "Usuário não encontrado"
-    }
+    }"""

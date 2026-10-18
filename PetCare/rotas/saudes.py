@@ -11,7 +11,7 @@ router = APIRouter()
 #Vacinas
 
 class Vacina(BaseModel):
-    nome: str
+    nome_vacina: str
     data_aplicacao: str
     proxima_aplicacao: Optional[str] = None
 

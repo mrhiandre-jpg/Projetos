@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from rotas import usuario, pet, saudes, cuidados #importamos o arquivo rotas
+from rotas import usuario, pet #saudes, cuidados importamos o arquivo rotas
 from bd.BD import engine #importamos o arquivo model
 from bd import model
 
@@ -13,8 +13,9 @@ app.include_router(usuario.router)
 
 #conectamos o módulo da rota pet
 app.include_router(pet.router)
-app.include_router(saudes.router)
-app.include_router(cuidados.router)
+
+#app.include_router(saudes.router)
+#app.include_router(cuidados.router)
 
 
 
