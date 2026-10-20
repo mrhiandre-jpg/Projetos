@@ -5,6 +5,7 @@ from bd.BD import SessionLocal
 from bd import model
 from schemas import PetCreate, PetResponse
 
+
 router = APIRouter ()
 
 def get_db():
@@ -35,38 +36,43 @@ def criar_pet(pet: PetCreate, db: Session = Depends(get_db)):
         db.add(novo_pet)
         db.commit()
         db.refresh(novo_pet)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Não foi possível criar o pet: {e}")
+        raise HTTPException(status_code=500, detail=f"Não foi possível criar o pet")
 
     return novo_pet
-""" @router.get("/pets", status_code=200)
-def listar_pets():
+@router.get("/pets", status_code=200, response_model=list[PetResponse])
+def listar_pets(db: Session = Depends(get_db)):
+
+    return db.query(model.PetsBD).all()
     #retona a lista dos pets cadastrados
-    return {
-        "mensagem": "lista de pets cadastrados",
-        "pets": tabela_de_pets
-        
-    }
-@router.put("/pets/{pet_id}", status_code=200)
-def atualizar_pet(pet_id: int, pet: PetsCreate,):
-    #verifica se o pet existe na tabela
-    if pet_id in tabela_de_pets:
-        #Transforma os dados do pet em um dicionário
-        novo_pet = pet.model_dump()
-        novo_pet["id"] = pet_id
 
-        #Substitui o pet antigo pelo novo
-        tabela_de_pets[pet_id] = novo_pet
+@router.put("/pets/{pet_id}", status_code=200, response_model=PetResponse)
+def atualizar_pet(pet_id: int, pet: PetCreate, db: Session = Depends(get_db)):
+    #verifica se o pet e o novo dono existe na tabela  
+    pet_bd = db.get(model.PetsBD, pet_id)
+    if not pet_bd :
+        raise HTTPException(status_code=404, detail=f"Não foi possivel encontrar o Pet")
 
-        #retorna o pet atualizado
-        return {
-            "mensagem": "Pet atualizado com sucesso",
-            "pet": novo_pet
-        }
-    return {
-        "mensagem": "Pet não encontrado"
-    }
+    if not db.get(model.UsuarioBD, pet.usuario_id):
+        raise HTTPException(status_code=404, detail=f"Não foi possivel encontrar o Usuario") 
+
+    pet_bd.nome = pet.nome
+    pet_bd.especie = pet.especie
+    pet_bd.data_de_nascimento = pet.data_de_nascimento
+    pet_bd.raca = pet.raca
+    pet_bd.usuario_id = pet.usuario_id
+
+    try:
+        db.add(pet_bd)
+        db.commit()
+        db.refresh(pet_bd)
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Não foi possivel atualizar o pet")
+    return pet_bd
+    
+"""
 @router.delete("/pets/{pet_id}", status_code=200)
 def deletar_pet(pet_id: int):
     #verifica se o pet existe na tabela

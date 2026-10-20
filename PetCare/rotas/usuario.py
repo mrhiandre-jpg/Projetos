@@ -38,41 +38,39 @@ def criar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Não foi possivel criar o usuario: {e}")
-        
+
     return novo_usuario
-"""@router.get("/usuarios", status_code=200)
+@router.get("/usuarios", status_code=200, response_model=list[UsuarioResponse])
 def Listar_usuarios(db: Session = Depends(get_db)):
     #retorna a lista de usuários cadastrados
-    usuarios_salvos = db.query(model.UsuarioDB).all()
+    return db.query(model.UsuarioBD).all()
 
-    return {
-        "mensagem": "Lista de Usuários recuperada com sucesso", 
-        "usuarios": usuarios_salvos
 
-    }
-
-@router.put("/usuarios/{usuario_id}", status_code=200)
-def atualizar_usuario(usuario_id: int, usuario: Usuarios):
+@router.put("/usuarios/{usuario_id}", status_code=200, response_model=UsuarioResponse)
+def atualizar_usuario(usuario_id: int, usuario: UsuarioCreate, db: Session = Depends(get_db)):
     #verifica se o usuário existe na tabela
-    if usuario_id in tabela_de_usuarios:
-
-        #Transforma o objeto do usuário em um dicionário
-        novo_usuario = usuario.model_dump()
-        novo_usuario["id"] = usuario_id
-       
-        #Substiuindo o usuário antigo pelo novo
-        tabela_de_usuarios[usuario_id] = novo_usuario
-
-        #retorna o usuário atualizado
-        return {
-            "mensagem": "Usuário atualizado com sucesso",
-            "usuario": novo_usuario
-        }
-    return {
-        "mensagem": "Usuário não encontrado"
-    }
+    usuario_bd = db.get(model.UsuarioBD, usuario_id)
+    if not usuario_bd:
+        raise HTTPException(status_code=404, detail=f"Não foi possivel encontrar o usuario")
 
 
+    usuario_bd.nome = usuario.nome
+    usuario_bd.email = usuario.email
+    usuario_bd.senha = usuario.senha
+
+    try:
+        db.add(usuario_bd)
+        db.commit()
+        db.refresh(usuario_bd)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=f"Email ja cadastrado")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Não foi possivel atualizar o usuario")
+    return usuario_bd
+
+"""
 @router.delete("/usuarios/{usuario_id}", status_code=200)
 def deletar_usuario(usuario_id: int):
     #Verifica se o usuário existe na tabela
