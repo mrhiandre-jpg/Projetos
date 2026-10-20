@@ -1,10 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
-
-#importamos a tabela de pets do arquivo pet.py para poder associar as vacinas e consultas aos pets
-from rotas.pet import tabela_de_pets
-
 router = APIRouter()
 
 

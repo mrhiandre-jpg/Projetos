@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from typing import Optional
 from sqlalchemy.orm import Session
-from datetime import date
+from sqlalchemy.exc import IntegrityError
 from bd.BD import SessionLocal
 from bd import model
+from schemas import PetCreate, PetResponse
 
 router = APIRouter ()
 
@@ -16,45 +15,38 @@ def get_db():
         db.close()
 
 
-#criando o modelo de dados para o pet
+"""#criando o modelo de dados para o pet
 class PetsCreate(BaseModel):
     nome: str
     especie: str
     idade_pet: date
     raca: str
-    usuario_id: int 
+    usuario_id: int """
 
-@router.post("/pets", status_code=201)
-def criar_pet(pet: PetsCreate, db: Session = Depends(get_db)):
-    novo_pet_db = model.PetsBD(
-        nome=pet.nome,
-        especie=pet.especie,
-        idade_pet=pet.idade_pet,
-        raca=pet.raca
-        
+@router.post("/pets", status_code=201, response_model=PetResponse)
+def criar_pet(pet: PetCreate, db: Session = Depends(get_db)):
+    dono = db.get(model.UsuarioBD, pet.usuario_id)
+    if not dono:
+        raise HTTPException(status_code=404, detail=f"Não foi possivel encontrar o dono")   
 
-    )
+
+    novo_pet = model.PetsBD(**pet.model_dump())
     try:
-        db.add(novo_pet_db)
+        db.add(novo_pet)
         db.commit()
-        db.refresh(novo_pet_db)
+        db.refresh(novo_pet)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Não foi possível criar o pet: {e}")
 
-    return {"mensagem": "Pet criado com sucesso!", "pet": {
-        "id": novo_pet_db.id,
-        "nome": novo_pet_db.nome,
-        "especie": novo_pet_db.especie,
-        "idade": novo_pet_db.idade,
-        "raca": novo_pet_db.raca,
-    }}
+    return novo_pet
 """ @router.get("/pets", status_code=200)
 def listar_pets():
     #retona a lista dos pets cadastrados
     return {
         "mensagem": "lista de pets cadastrados",
         "pets": tabela_de_pets
+        
     }
 @router.put("/pets/{pet_id}", status_code=200)
 def atualizar_pet(pet_id: int, pet: PetsCreate,):

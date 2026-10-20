@@ -1,20 +1,20 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
 from bd.BD import SessionLocal
 from bd import model
-from typing import Optional
+from schemas import UsuarioCreate, UsuarioResponse 
 
 #criei para poder modularizar o código e não deixar tudo no main.py
 
 router = APIRouter()
 
 #Criando o modelo de dados para o usuário
-class Usuarios(BaseModel):
+"""class Usuarios(BaseModel):
     nome: str
     email: str
-    senha: str
+    senha: str"""
 
 def get_db():
     db = SessionLocal()
@@ -24,19 +24,22 @@ def get_db():
         db.close()
 
 #fazemos a rota para criar um usuário
-@router.post("/usuarios", status_code=201)
-def criar_usuario(usuario: Usuarios, db: Session = Depends(get_db)):
+@router.post("/usuarios", status_code=201, response_model=UsuarioResponse)
+def criar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
 
-    novo_usuario = model.UsuarioBD(
-        nome=usuario.nome,
-        email=usuario.email,
-        senha=usuario.senha
-    )
-
-    db.add(novo_usuario)
-    db.commit()
-    db.refresh(novo_usuario)
-    return
+    novo_usuario = model.UsuarioBD(**usuario.model_dump())
+    try:
+        db.add(novo_usuario)
+        db.commit()
+        db.refresh(novo_usuario)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=f"Email ja cadastrado")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Não foi possivel criar o usuario: {e}")
+        
+    return novo_usuario
 """@router.get("/usuarios", status_code=200)
 def Listar_usuarios(db: Session = Depends(get_db)):
     #retorna a lista de usuários cadastrados
